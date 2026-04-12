@@ -1,3 +1,3 @@
 # OTUS_PYTHON_BASIC_DP
-Репозиторий группового дипломного проекта курса OTUS Python Basicю
+Репозиторий группового дипломного проекта курса OTUS Python Basic.
  
