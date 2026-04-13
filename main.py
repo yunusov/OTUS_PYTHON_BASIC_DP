@@ -8,5 +8,5 @@ logger = AppLogger().get_logger()
 app = FastAPI()
 
 if __name__ == "__main__":
-    logger.info("APP started!!!")
+    logger.info("APP started!")
     uvicorn.run("main:app", reload=True)
