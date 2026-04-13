@@ -31,7 +31,7 @@ class AppLogger:
             compression="zip",
             serialize=False,  # Структурированное логирование в JSON
         )
-        logger.info("Режим продакшена: логирование настроено для вывода в файл.")
+        # logger.info("Режим продакшена: логирование настроено для вывода в файл.")
 
     def get_logger(self):
         return logger
