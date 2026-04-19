@@ -5,6 +5,8 @@ from sqlalchemy import pool
 
 from alembic import context
 from src.models.user import UserOrm #noqa
+from taskflow.src.models.project import ProjectOrm
+from taskflow.src.models.task import TaskOrm
 from taskflow.src.core.database import BaseOrm
 from taskflow.src.core.config import settings
 
