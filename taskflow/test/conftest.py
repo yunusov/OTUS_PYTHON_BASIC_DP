@@ -8,7 +8,7 @@ sys.path.insert(0, ".")
 
 from src.core.database import BaseOrm, get_db_session
 from src.core.config import settings
-from src.models.user import UserOrm  # noqa
+from src.models import UserOrm  # noqa
 from main import app
 
 

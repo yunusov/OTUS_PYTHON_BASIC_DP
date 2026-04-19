@@ -6,8 +6,8 @@ from sqlalchemy import (
     Text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.database import BaseOrm, created_at, updated_at
-from .user import UserOrm
+
+from src.core.database import BaseOrm, created_at, updated_at
 
 from enum import StrEnum
 from sqlalchemy import Enum as SQLEnum
@@ -33,7 +33,7 @@ class ProjectOrm(BaseOrm):
     creator_id: Mapped[int] = mapped_column(
         ForeignKey("tf_users.id"),
         nullable=False,
-        index=True,
+        index=False,
     )
 
     project_type: Mapped[ProjectType] = mapped_column(
@@ -45,9 +45,11 @@ class ProjectOrm(BaseOrm):
         ),
         default=ProjectType.SOFTWARE,
         nullable=False,
+        index=False,
     )
 
     creator: Mapped["UserOrm"] = relationship("UserOrm")
+    task: Mapped[list["TaskOrm"]] = relationship(back_populates="project")
 
     __table_args__ = (
         Index("ix_tf_projects_creator_id", "creator_id"),

@@ -1,5 +1,5 @@
 from sqlalchemy import CheckConstraint, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import BaseOrm, created_at
 from src.schemas.user import User
@@ -33,6 +33,8 @@ class UserOrm(BaseOrm):
     )
     created_at: Mapped[created_at]
     is_active: Mapped[bool]
+
+    project: Mapped[list["ProjectOrm"]] = relationship(back_populates="creator")
 
     __table_args__ = (
         CheckConstraint(

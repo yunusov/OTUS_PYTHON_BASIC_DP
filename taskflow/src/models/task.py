@@ -7,15 +7,12 @@ from sqlalchemy import (
     func,
     Index,
     Text,
-    String,
     DateTime,
     Integer,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.database import BaseOrm, created_at, updated_at
-from .user import UserOrm
-from .project import ProjectOrm
+from src.core.database import BaseOrm, created_at, updated_at
 
 from enum import StrEnum
 from sqlalchemy import Enum as SQLEnum
@@ -47,7 +44,7 @@ class TaskOrm(BaseOrm):
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     project_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("tf_projects.id"),
-        index=True,
+        index=False,
         nullable=True,
     )
     status: Mapped[TaskStatus] = mapped_column(
@@ -59,6 +56,7 @@ class TaskOrm(BaseOrm):
         ),
         default=TaskStatus.TODO,
         nullable=False,
+        index=False,
     )
     priority: Mapped[TaskPriority] = mapped_column(
         SQLEnum(
@@ -69,34 +67,31 @@ class TaskOrm(BaseOrm):
         ),
         default=TaskPriority.MEDIUM,
         nullable=False,
+        index=False,
     )
     due_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     creator_id: Mapped[int] = mapped_column(
         ForeignKey("tf_users.id"),
-        index=True,
+        index=False,
         nullable=False,
     )
     assignee_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("tf_users.id"),
-        index=True,
+        index=False,
         nullable=True,
     )
     time_estimate: Mapped[Optional[int]] = mapped_column(
         Integer, nullable=True
     )  # в часах
-    time_spent: Mapped[Optional[int]] = mapped_column(
-        Integer, default=0, nullable=True
-    )
+    time_spent: Mapped[Optional[int]] = mapped_column(Integer, default=0, nullable=True)
 
     created_at: Mapped[created_at]
     updated_at: Mapped[updated_at]
 
     project: Mapped[Optional["ProjectOrm"]] = relationship(
-        "ProjectOrm", back_populates="tasks"
+        "ProjectOrm", back_populates="task"
     )
-    creator: Mapped["UserOrm"] = relationship(
-        "UserOrm", foreign_keys=[creator_id]
-    )
+    creator: Mapped["UserOrm"] = relationship("UserOrm", foreign_keys=[creator_id])
     assignee: Mapped[Optional["UserOrm"]] = relationship(
         "UserOrm", foreign_keys=[assignee_id]
     )
