@@ -1,14 +1,15 @@
+import sys
+sys.path.insert(0, ".")
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from src.models.user import UserOrm #noqa
-from src.models.project import ProjectOrm
-from src.models.task import TaskOrm
-from src.database import BaseOrm
-from src.config import settings
+from src.models import TaskOrm, ProjectOrm, UserOrm #noqa
+from src.core.database import BaseOrm
+from src.core.config import settings
 
 config = context.config
 

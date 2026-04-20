@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status
 import httpx
 
-from src.config import settings
+from taskflow.src.core.config import settings
 from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()

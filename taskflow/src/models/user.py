@@ -1,12 +1,22 @@
 from sqlalchemy import CheckConstraint, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.database import BaseOrm, created_at
+from src.core.database import BaseOrm, created_at
+from src.schemas.user import User
 
 
 class UserOrm(BaseOrm):
 
     __tablename__ = "tf_users"
+
+    def __init__(self, user: User):
+        super().__init__(
+            fullname=user.fullname,
+            username=user.username,
+            email=user.email,
+            hashed_password=user.hashed_password,
+            is_active=user.is_active,
+        )
 
     fullname: Mapped[str] = mapped_column(
         Text,
@@ -16,12 +26,15 @@ class UserOrm(BaseOrm):
     username: Mapped[str] = mapped_column(Text, unique=True)
     email: Mapped[str] = mapped_column(
         Text,
+        unique=True,
     )
     hashed_password: Mapped[str] = mapped_column(
         Text,
     )
     created_at: Mapped[created_at]
     is_active: Mapped[bool]
+
+    project: Mapped[list["ProjectOrm"]] = relationship(back_populates="creator")
 
     __table_args__ = (
         CheckConstraint(
@@ -31,5 +44,9 @@ class UserOrm(BaseOrm):
         CheckConstraint(
             func.length(fullname) <= 100,
             name="full_name_max_length",
+        ),
+        CheckConstraint(
+            func.length(email) <= 50,
+            name="email_max_length",
         ),
     )
