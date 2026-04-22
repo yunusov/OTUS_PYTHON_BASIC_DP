@@ -2,7 +2,7 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 from typing import Annotated
 
-from src.repositories.user_repository import UserRepository
+from src.repositories import UserRepository
 from .database import session_factory
 
 

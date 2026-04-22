@@ -1,6 +1,6 @@
 @rem запуск тестов pytest
 
 @cls
-uv run pytest -vv test/
+uv run pytest -xvvs test/
 
 @pause
