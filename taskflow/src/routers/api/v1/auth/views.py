@@ -1,24 +1,14 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from fastapi.security import HTTPBasic
 
 from src.utils.loguru_config import AppLogger
-from src.repositories.user_repository import UserRepository
 from src.schemas.user import User
-from src.core.database import DbSession
+from src.core.dependencies import UserRepo
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 logger = AppLogger().get_logger()
 
 security = HTTPBasic()
-
-
-def get_user_repository(session: DbSession):
-    return UserRepository(session)
-
-
-UserRepo = Annotated[UserRepository, Depends(get_user_repository)]
 
 
 @router.post("/register")

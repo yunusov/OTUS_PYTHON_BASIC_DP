@@ -1,7 +1,5 @@
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy import create_engine, func
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 import datetime
 from typing import Annotated
 
@@ -36,15 +34,6 @@ updated_at = Annotated[
         onupdate=lambda *args: datetime.datetime.now(datetime.UTC),
     ),
 ]
-
-def get_db_session():
-    session = session_factory()
-    try:
-        yield session
-    finally:
-        session.close()
-
-DbSession = Annotated[Session, Depends(get_db_session)]
 
 
 class BaseOrm(DeclarativeBase):
