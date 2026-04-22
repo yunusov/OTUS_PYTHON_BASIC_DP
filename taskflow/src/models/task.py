@@ -1,3 +1,7 @@
+from datetime import datetime
+from enum import StrEnum
+from typing import TYPE_CHECKING, Optional
+
 from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
@@ -7,20 +11,37 @@ from sqlalchemy import (
     Text,
     DateTime,
     func,
+    Enum as SQLEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Enum as SQLEnum
 
-from src.core.database import BaseOrm
-from src.models.project import ProjectOrm
-from src.models.user import UserOrm
+from .base import BaseOrm
+
+from .mixins import (
+    DateCreateUpdateMixin,
+    IntIdPkMixin,
+)
 from src.schemas.task import Task, TaskStatus, TaskPriority
+
+if TYPE_CHECKING:
+    from .project import ProjectOrm
+    from .user import UserOrm
+
+class TaskStatus(StrEnum):
+    TODO = "todo"
+    IN_PROGRESS = "in_progress"
+    REVIEW = "review"
+    DONE = "done"
 
 from datetime import datetime
 from typing import Optional
 
 
-class TaskOrm(BaseOrm):
+class TaskOrm(
+    BaseOrm,
+    IntIdPkMixin,
+    DateCreateUpdateMixin,
+):
     __tablename__ = "tf_tasks"
 
     def __init__(self, task: Task):
@@ -80,13 +101,7 @@ class TaskOrm(BaseOrm):
     time_estimate: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     time_spent: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
-    # Технические поля
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=func.now(), nullable=False
-    )
-
-    # Relationships
-    project: Mapped["ProjectOrm"] = relationship(back_populates="tasks")
+    project: Mapped["ProjectOrm"] = relationship("ProjectOrm", back_populates="tasks")
     creator: Mapped["UserOrm"] = relationship(
         "UserOrm",
         foreign_keys=[creator_id],

@@ -1,25 +1,61 @@
-from sqlalchemy import CheckConstraint, Text, func
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from __future__ import annotations
 
-from src.core.database import BaseOrm, created_at
+from typing import TYPE_CHECKING
+
+from typing import Any
+
+from fastapi_users_db_sqlalchemy import (
+    SQLAlchemyBaseUserTable,
+    SQLAlchemyUserDatabase as SQLAlchemyUserDatabaseGeneric,
+)
+
+from sqlalchemy import CheckConstraint, Text, func, select
+from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
+
+if TYPE_CHECKING:
+    # from src.core.types.user_id import UserIdType
+    from .access_token import AccessTokenOrm
+    from .project import ProjectOrm
+    from src.core.async_session_wrapper import AsyncSessionWrapper
+
 from src.core.security import hash_password
-from src.schemas import UserInDB
-from src.models import user_project
+from src.schemas import UserCreate
+from .base import BaseOrm
+from .mixins import (
+    DateCreateUpdateMixin,
+    IntIdPkMixin,
+)
 
 
+class SQLAlchemyUserDatabase(SQLAlchemyUserDatabaseGeneric):
 
-class UserOrm(BaseOrm):
+    def get_users(self) -> list["UserOrm"]:
+        statement = select(UserOrm).order_by(UserOrm.id)
+        results = self.session.scalars(statement)
+        return list(results.all())
+
+    async def create(self, create_dict: dict[str, Any]) -> Any:
+        user = self.user_table(**create_dict)
+        self.session.add(user)
+        await self.session.commit()
+        return user
+
+    async def update(self, user: Any, update_dict: dict[str, Any]) -> Any:
+        for key, value in update_dict.items():
+            setattr(user, key, value)
+        self.session.add(user)
+        await self.session.commit()
+        return user
+
+
+class UserOrm(
+    BaseOrm,
+    IntIdPkMixin,
+    DateCreateUpdateMixin,
+    SQLAlchemyBaseUserTable,
+):
 
     __tablename__ = "tf_users"
-
-    def __init__(self, user: UserInDB):
-        super().__init__(
-            fullname=user.fullname,
-            username=user.username,
-            email=user.email,
-            hashed_password=hash_password(user.hashed_password),
-            is_active=user.is_active,
-        )
 
     fullname: Mapped[str] = mapped_column(
         Text,
@@ -27,13 +63,10 @@ class UserOrm(BaseOrm):
         server_default="",
     )
     username: Mapped[str] = mapped_column(Text, unique=True)
-    email: Mapped[str] = mapped_column(
-        Text,
-        unique=True,
-    )
-    hashed_password: Mapped[str] = mapped_column(
-        Text,
-    )
+
+    @classmethod
+    def get_db(cls, session: "AsyncSessionWrapper"):
+        return SQLAlchemyUserDatabase(session, cls)  # type: ignore[arg-type]
 
     def __repr__(self) -> str:
         return "".join(
@@ -43,13 +76,21 @@ class UserOrm(BaseOrm):
                 f"fullname={self.fullname},",
                 f"email={self.email},",
                 f"is_active={self.is_active},",
-                f"created_at={self.created_at})",
+                f"is_superuser={self.is_superuser},",
+                f"is_verified={self.is_verified},",
+                f"created_at={self.created_at}",
+                f"update_at={self.updated_at})",
             ]
         )
 
-    created_at: Mapped[created_at]
-    is_active: Mapped[bool]
-
+    access_tokens: Mapped[list["AccessTokenOrm"]] = relationship(
+        back_populates="user",
+    )
+    created_tasks: Mapped[list["TaskOrm"]] = relationship(
+        "TaskOrm",
+        foreign_keys="TaskOrm.creator_id",  # ← явно указываем creator_id
+        back_populates="creator",
+    )
     project: Mapped[list["ProjectOrm"]] = relationship(back_populates="creator")
     projects: Mapped[list["ProjectOrm"]] = relationship(
         "ProjectOrm",
@@ -57,25 +98,20 @@ class UserOrm(BaseOrm):
         back_populates="users",
         lazy="selectin",
     )
-    created_tasks: Mapped[list["TaskOrm"]] = relationship(
-        "TaskOrm",
-        foreign_keys="TaskOrm.creator_id",  # ← явно указываем creator_id
-        back_populates="creator"
-    )
 
-
-
-    __table_args__ = (
-        CheckConstraint(
-            func.length(username) <= 32,
-            name="username_max_length",
-        ),
-        CheckConstraint(
-            func.length(fullname) <= 100,
-            name="full_name_max_length",
-        ),
-        CheckConstraint(
-            func.length(email) <= 50,
-            name="email_max_length",
-        ),
-    )
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            CheckConstraint(
+                func.length(cls.username) <= 32,
+                name="username_max_length",
+            ),
+            CheckConstraint(
+                func.length(cls.fullname) <= 100,
+                name="full_name_max_length",
+            ),
+            CheckConstraint(
+                func.length(cls.email) <= 320,
+                name="email_max_length",
+            ),
+        )

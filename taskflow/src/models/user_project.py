@@ -1,6 +1,11 @@
-from sqlalchemy import Table, Column, Integer, ForeignKey
+from sqlalchemy import (
+    Table,
+    Column,
+    Integer,
+    ForeignKey,
+)
 
-from src.core.database import BaseOrm
+from src.models import BaseOrm
 
 user_project = Table(
     "tf_user_project",
