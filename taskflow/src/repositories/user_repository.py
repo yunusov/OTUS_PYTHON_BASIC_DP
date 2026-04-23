@@ -1,45 +1,32 @@
 from sqlalchemy import select
-from sqlalchemy.orm import Session
 
-from taskflow.src.models.user import UserOrm
-from taskflow.src.schemas.user import User
+from src.models import UserOrm
+from src.utils.loguru_config import AppLogger
+from .base import BaseRepository
+
+logger = AppLogger().get_logger()
 
 
-class UserRepository:
-    def __init__(self, session: Session):
-        self.session = session
-
-    def create(self, user: User) -> UserOrm:
-        userOrm = UserOrm(user)
-        self.session.add(userOrm)
-        self.session.commit()
-        self.session.refresh(userOrm)
-        return userOrm
+class UserRepository(BaseRepository):
 
     def get_by_id(self, user_id: int) -> UserOrm | None:
-        result = self.session.execute(select(UserOrm).where(UserOrm.id == user_id))
+        '''Пользователь по ИД'''
+        result = self.session.execute(
+            select(UserOrm).where(UserOrm.id == user_id)
+        )
         return result.scalar_one_or_none()
 
-    def update(self, user: User) -> UserOrm | None:
-        query = select(UserOrm).filter_by(id=user.id)
-        userOrm = self.session.execute(query).scalar_one_or_none()
-        if userOrm:
-            userOrm.username = user.username
-            userOrm.fullname = user.fullname
-            userOrm.email = user.email
-            userOrm.is_active = user.is_active
-            userOrm.hashed_password = user.hashed_password
+    def get_by_email(self, email: str) -> UserOrm | None:
+        '''Пользователь по емейл'''
+        result = self.session.execute(
+            select(UserOrm).where(UserOrm.email == email)
+        )
+        return result.scalar_one_or_none()
 
-            self.session.commit()
-            self.session.refresh(userOrm)
-        return userOrm
-
-    def delete(self, user_id: int | None) -> bool:
-        if user_id:
-            user = self.get_by_id(user_id)
-            if not user:
-                return False
-            self.session.delete(user)
-            self.session.commit()
-            return True
-        return False
+    def get_by_username(self, username: str) -> UserOrm | None:
+        '''Пользователь по логину'''
+        result = self.session.execute(
+            select(UserOrm).where(UserOrm.username == username)
+        )
+        return result.scalar_one_or_none()
+    

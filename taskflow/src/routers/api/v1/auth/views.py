@@ -1,12 +1,10 @@
-from typing import Annotated
-
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 from fastapi.security import HTTPBasic
 
-from taskflow.src.utils.loguru_config import AppLogger
-from taskflow.src.repositories.user_repository import UserRepository
-from taskflow.src.schemas.user import User
-from taskflow.src.core.database import DbSession
+from src.core.dependencies import UserRepo
+from src.schemas import User, UserInDB
+from src.services import AuthService, UserService
+from src.utils.loguru_config import AppLogger
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 logger = AppLogger().get_logger()
@@ -14,53 +12,38 @@ logger = AppLogger().get_logger()
 security = HTTPBasic()
 
 
-def get_user_repository(session: DbSession):
-    return UserRepository(session)
-
-
-UserRepo = Annotated[UserRepository, Depends(get_user_repository)]
-
-
 @router.post("/register")
 def register_user(
-    user: User,
+    user: UserInDB,
     repository: UserRepo,
 ) -> User:
     """Создать пользователя"""
-    user = User(
-        id=None,
-        username=user.username,
-        fullname=user.fullname,
-        email=user.email,
-        hashed_password=user.hashed_password,
-        is_active=True,
-    )
-    userOrm = repository.create(user)
-    return User.model_validate(userOrm)
+    return AuthService().register(user, repository)
 
 
 @router.put("/register")
 def modify_user(
-    user: User,
+    user: UserInDB,
     repository: UserRepo,
 ) -> User | None:
-    """Создать пользователя"""
-    user = User(
-        id=user.id,
-        username=user.username,
-        fullname=user.fullname,
-        email=user.email,
-        hashed_password=user.hashed_password,
-        is_active=user.is_active,
-    )
-    repository.update(user)
-
-    return user
+    """Модифицировать пользователя"""
+    return UserService().modify(user, repository)
 
 
 @router.delete("/register/{user_id}")
 def remove_user(user_id: int, repository: UserRepo) -> bool:
-    return repository.delete(user_id)
+    """Удалить пользователя"""
+    return UserService().delete(user_id, repository)
+
+
+@router.post("/")
+def auth_user(user: UserInDB, repository: UserRepo) -> User | None:
+    """Аутенцифицировать пользователя"""
+    return AuthService().authenticate(
+        user.username,
+        user.hashed_password,
+        repository,
+    )
 
 
 # @router.get("/register")
