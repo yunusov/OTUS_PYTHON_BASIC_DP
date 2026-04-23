@@ -1,12 +1,18 @@
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from .base import BaseRepository
 from src.models import ProjectOrm
 from src.utils.loguru_config import AppLogger
 from .base import BaseRepository
+from taskflow.src.models.project import ProjectOrm
+from taskflow.src.schemas.project import Project, ProjectUpdate
 
 logger = AppLogger().get_logger()
 
+class ProjectRepository:
+    def __init__(self, session: Session):
+        self.session = session
 
 class ProjectRepository(BaseRepository):
 

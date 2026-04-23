@@ -3,6 +3,23 @@ from typing import AsyncGenerator
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+import datetime
+from typing import Annotated
+
+from sqlalchemy import text
+from sqlalchemy.orm import (
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+)
+
+from taskflow.src.core.config import settings
+
+
+# asyncio.run(get_version_async())
+
+sync_engine = create_engine(url=settings.DATABASE_URL, echo=True)
+#async_engine = create_async_engine(url=settings.DATABASE_URL_ASYNC, echo=True)
 
 from src.core import settings
 from .async_session_wrapper import AsyncSessionWrapper

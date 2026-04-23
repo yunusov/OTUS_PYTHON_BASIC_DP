@@ -20,6 +20,8 @@ if TYPE_CHECKING:
     from .user_project import UserProjectOrm
     from src.core.async_session_wrapper import AsyncSessionWrapper
 
+from taskflow.src.core.database import BaseOrm, created_at
+from taskflow.src.schemas.user import User
 
 class SQLAlchemyUserDatabase(SQLAlchemyUserDatabaseGeneric):
 
