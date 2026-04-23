@@ -1,16 +1,21 @@
+from datetime import datetime
+from typing import Optional
 from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
     func,
     Index,
     Text,
+    DateTime,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from src.core.database import BaseOrm, created_at, updated_at
-
-from enum import StrEnum
 from sqlalchemy import Enum as SQLEnum
+
+from taskflow.src.core.database import BaseOrm
+from taskflow.src.models.user import UserOrm
+from taskflow.src.models.task import TaskOrm
+from enum import StrEnum
 
 
 class ProjectType(StrEnum):
@@ -24,11 +29,24 @@ class ProjectOrm(BaseOrm):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(Text, server_default="", nullable=False)
-    description: Mapped[str] = mapped_column(
-        Text, default="", server_default="", nullable=False
+
+
+    description: Mapped[Optional[str]] = mapped_column(
+        Text,
+        default="",
+        server_default="",
+        nullable=True
     )
-    created_at: Mapped[created_at]
-    updated_at: Mapped[updated_at]
+
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=text("CURRENT_TIMESTAMP")
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=text("CURRENT_TIMESTAMP"),
+        onupdate=text("CURRENT_TIMESTAMP")
+    )
 
     creator_id: Mapped[int] = mapped_column(
         ForeignKey("tf_users.id"),

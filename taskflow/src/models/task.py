@@ -9,13 +9,15 @@ from sqlalchemy import (
     Text,
     DateTime,
     Integer,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Enum as SQLEnum
 
-from src.core.database import BaseOrm, created_at, updated_at
+from taskflow.src.core.database import BaseOrm
+from taskflow.src.models.user import UserOrm
 
 from enum import StrEnum
-from sqlalchemy import Enum as SQLEnum
 
 
 class TaskStatus(StrEnum):
@@ -85,8 +87,16 @@ class TaskOrm(BaseOrm):
     )  # в часах
     time_spent: Mapped[Optional[int]] = mapped_column(Integer, default=0, nullable=True)
 
-    created_at: Mapped[created_at]
-    updated_at: Mapped[updated_at]
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=text("CURRENT_TIMESTAMP")
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=text("CURRENT_TIMESTAMP"),
+        onupdate=text("CURRENT_TIMESTAMP")
+    )
 
     project: Mapped[Optional["ProjectOrm"]] = relationship(
         "ProjectOrm", back_populates="task"
