@@ -1,15 +1,17 @@
 import sys
+import os
 import pytest
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from fastapi.testclient import TestClient
 
 sys.path.insert(0, ".")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from src.core.database import BaseOrm, get_db_session
-from src.core.config import settings
-from src.models import UserOrm  # noqa
-from main import app
+from taskflow.src.core.database import BaseOrm, get_db_session
+from taskflow.src.core.config import settings
+from taskflow.src.models import UserOrm  # noqa
+from taskflow.main import app
 
 
 @pytest.fixture

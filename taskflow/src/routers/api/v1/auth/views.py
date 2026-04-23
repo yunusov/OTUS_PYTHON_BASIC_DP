@@ -3,10 +3,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.security import HTTPBasic
 
-from src.utils.loguru_config import AppLogger
-from src.repositories.user_repository import UserRepository
-from src.schemas.user import User
-from src.core.database import DbSession
+from taskflow.src.utils.loguru_config import AppLogger
+from taskflow.src.repositories.user_repository import UserRepository
+from taskflow.src.schemas.user import User
+from taskflow.src.core.database import DbSession
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 logger = AppLogger().get_logger()

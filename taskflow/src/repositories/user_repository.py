@@ -1,8 +1,8 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.models.user import UserOrm
-from src.schemas.user import User
+from taskflow.src.models.user import UserOrm
+from taskflow.src.schemas.user import User
 
 
 class UserRepository:

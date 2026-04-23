@@ -1,8 +1,8 @@
 from sqlalchemy import CheckConstraint, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.core.database import BaseOrm, created_at
-from src.schemas.user import User
+from taskflow.src.core.database import BaseOrm, created_at
+from taskflow.src.schemas.user import User
 
 
 class UserOrm(BaseOrm):
