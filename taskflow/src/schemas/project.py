@@ -48,7 +48,7 @@ class ProjectRead(ProjectBase):
     created_at: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(datetime.UTC)
     )
-    
+
     def __repr__(self) -> str:
         return "".join(
             [

@@ -1,7 +1,7 @@
 from sqlalchemy import select
 
-from src.models import UserOrm
-from src.utils.loguru_config import AppLogger
+from taskflow.src.models import UserOrm
+from taskflow.src.utils.loguru_config import AppLogger
 from .base import BaseRepository
 
 logger = AppLogger().get_logger()
@@ -29,4 +29,4 @@ class UserRepository(BaseRepository):
             select(UserOrm).where(UserOrm.username == username)
         )
         return result.scalar_one_or_none()
-    
+

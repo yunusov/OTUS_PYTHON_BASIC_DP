@@ -1,5 +1,7 @@
 # test/conftest.py
 
+import sys
+import os
 import pytest
 import random
 
@@ -8,6 +10,13 @@ from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from fastapi.testclient import TestClient
 
+sys.path.insert(0, ".")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from taskflow.src.core.database import BaseOrm, get_db_session
+from taskflow.src.core.config import settings
+from taskflow.src.models import UserOrm  # noqa
+from taskflow.main import app
 from main import main_app
 from src.core import database
 from src.core.async_session_wrapper import AsyncSessionWrapper
@@ -38,7 +47,7 @@ def db_session():
         autoflush=True
     )
     with sync_session() as session:
-        yield session  
+        yield session
 
     engine.dispose()
 
@@ -56,11 +65,11 @@ def client(db_session):
 
     main_app.dependency_overrides.clear()
     main_app.dependency_overrides[dependencies.get_db_session] = override_get_db_session
-    
+
     # Async override для fastapi_users
     async def override_get_async_session():
         yield AsyncSessionWrapper(db_session)
-    
+
     main_app.dependency_overrides[database.get_db_helper().get_session] = override_get_async_session
     yield TestClient(main_app)
 

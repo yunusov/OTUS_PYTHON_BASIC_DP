@@ -9,6 +9,9 @@ from src.core import get_db_helper, settings
 from src.routers import router as api_router
 
 from src.core.config import settings
+from src.routers import router as auth_router
+from taskflow.src.routers.api.v1.task_router.task import router as task_router
+from taskflow.src.routers.api.v1.project_router.project import router as project_router
 
 
 @asynccontextmanager
@@ -23,6 +26,8 @@ logger = AppLogger().get_logger()
 main_app = FastAPI(
     lifespan=lifespan,
 )
+app.include_router(router=task_router)
+app.include_router(router=project_router)
 
 main_app.include_router(router=api_router, prefix=settings.api.PREFIX)
 main_app.add_middleware(SessionMiddleware, secret_key=settings.run.SECRET_KEY)
