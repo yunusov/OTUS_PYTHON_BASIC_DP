@@ -6,11 +6,10 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 class User(BaseModel):
     """Класс для представления сущности пользователь"""
 
-    id: int | None
+    id: int
     username: str
     fullname: str
     email: EmailStr
-    hashed_password: str
     is_active: bool
     created_at: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(datetime.UTC)
@@ -41,8 +40,24 @@ class User(BaseModel):
             raise ValueError("Email должно быть менее 50 символов в длину!")
         return value
 
+
+class UserInDB(User):
+    hashed_password: str
+
     @field_validator("hashed_password")
     def check_hashed_password_len(cls, value):
         if not value:
             raise ValueError("Пароль не должен быть пустым!")
         return value
+
+    def __repr__(self) -> str:
+        return "".join(
+            [
+                f"{self.__repr_name__()}(id={self.id},",
+                f"username={self.username},",
+                f"fullname={self.fullname},",
+                f"email={self.email},",
+                f"is_active={self.is_active},",
+                f"created_at={self.created_at})",
+            ]
+        )

@@ -1,27 +1,23 @@
 import requests
 
+from src.utils.loguru_config import AppLogger
+from test.utils import assert_json_equal
 
-def test_create_user(user_json, server_url, client):
-    resp: requests.Response = client.post(
-        f"{server_url}/auth/register/", json=user_json
-    )
-    assert resp.status_code == 200
-    resp_json = resp.json()
-    created_at = resp_json.get("created_at")
-    user_json["created_at"] = created_at
-    assert resp_json == user_json
+logger = AppLogger().get_logger()
 
 
 def test_modify_user(user_json, server_url, modify_json, client):
-    created_at = user_json.get("created_at")
-    modify_json["created_at"] = created_at
-
+    resp: requests.Response = client.post(
+        f"{server_url}/auth/register/", json=user_json
+    )
     resp: requests.Response = client.put(
         f"{server_url}/auth/register/", json=modify_json
     )
     resp_json = resp.json()
-    resp_json["created_at"] = created_at
-    assert resp_json == modify_json
+    assert resp.status_code == 200
+    assert_json_equal(
+        modify_json, resp_json, exclude=["created_at", "id", "hashed_password"]
+    )
 
 
 def test_login_constraint(modify_json, server_url, client):
@@ -64,9 +60,30 @@ def test_email_constraints(modify_json, server_url, client):
     assert "value is not a valid email address" in resp_json["detail"][0]["msg"]
 
 
-def test_delete_user(server_url, client):
+def test_delete_user(server_url, modify_json, client):
+    resp: requests.Response = client.post(
+        f"{server_url}/auth/register/", json=modify_json
+    )
+    assert resp.status_code == 200
+    resp_json = resp.json()
+    assert_json_equal(
+        modify_json, resp_json, exclude=["created_at", "id", "hashed_password"]
+    )
+
+    resp: requests.Response = client.post(f"{server_url}/auth/", json=modify_json)
+    assert resp.status_code == 200
+    resp_json = resp.json()
+    assert_json_equal(
+        modify_json, resp_json, exclude=["created_at", "id", "hashed_password"]
+    )
+
     resp: requests.Response = client.delete(
         f"{server_url}/auth/register/1",
     )
     assert resp.status_code == 200
     assert resp.content
+
+    resp: requests.Response = client.post(f"{server_url}/auth/", json=modify_json)
+    assert resp.status_code == 200
+    resp_json = resp.json()
+    assert resp_json is None
