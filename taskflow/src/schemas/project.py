@@ -11,9 +11,9 @@ class ProjectType(StrEnum):
 
 
 class Project(BaseModel):
-    id: int | None = None
+    id: int
     name: str
-    description: Optional[str] = None
+    description: str
     creator_id: int
     project_type: ProjectType
     created_at: datetime.datetime = Field(

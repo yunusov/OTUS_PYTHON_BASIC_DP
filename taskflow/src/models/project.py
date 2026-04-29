@@ -1,3 +1,4 @@
+from enum import StrEnum
 from typing import Optional
 
 from sqlalchemy import (
@@ -12,8 +13,8 @@ from sqlalchemy import Enum as SQLEnum
 
 from src.core.database import BaseOrm
 from src.models.user import UserOrm
+from src.schemas.project import Project
 
-from enum import StrEnum
 
 
 class ProjectType(StrEnum):
@@ -24,6 +25,14 @@ class ProjectType(StrEnum):
 
 class ProjectOrm(BaseOrm):
     __tablename__ = "tf_projects"
+
+    def __init__(self, project: Project):
+        super().__init__(
+            name=project.name,
+            description=project.description,
+            creator_id=project.creator_id,
+            project_type=project.project_type,
+        )
 
     name: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

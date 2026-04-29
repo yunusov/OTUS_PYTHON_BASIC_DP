@@ -91,11 +91,11 @@ def modify_json():
 @pytest.fixture
 def project_json():
     return {
+        "id": 1,
         "name": "New project",
         "description": "Test description",
         "project_type": "software",
         "creator_id": 1,
         "created_at": "2026-01-01T10:23:12.012Z",
-        "updated_at": "2026-01-01T10:23:12.012Z",
-        "id":1
+        "updated_at": "2026-01-01T10:23:12.012Z",    
     }
