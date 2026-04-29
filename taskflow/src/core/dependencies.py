@@ -17,9 +17,7 @@ db_helper = get_db_helper()
 
 def get_db_session():
     yield db_helper.session_factory()
-
 DbSession = Annotated[Session, Depends(get_db_session)]
-
 
 def get_user_repository(session: DbSession):
     return UserRepository(session)
@@ -32,6 +30,18 @@ def get_task_repository(session: DbSession):
 
 TaskRepo = Annotated[TaskRepository, Depends(get_task_repository)]
 
+
+def get_project_repository(session: DbSession):
+    return ProjectRepository(session)
+
+ProjectRepo = Annotated[ProjectRepository, Depends(get_project_repository)]
+
+
+
+def get_task_repository(session: DbSession):
+    return TaskRepository(session)
+
+TaskRepo = Annotated[TaskRepository, Depends(get_task_repository)]
 
 def get_project_repository(session: DbSession):
     return ProjectRepository(session)

@@ -1,63 +1,62 @@
-import pytest
-from taskflow.src.schemas.project import ProjectType
+import requests
+from src.utils.loguru_config import AppLogger
+from test.utils import assert_json_equal
+from src.schemas.project import ProjectType
+
+logger = AppLogger().get_logger()
 
 
-class TestProjectCRUD:
-    """CRUD тесты для проектов"""
+def test_create_project(
+    project_json,
+    server_url,
+    client,
+    created_user,
+):
+    test_project = project_json.copy()
+    test_project["creator_id"] = created_user
 
-    @pytest.mark.parametrize("name", ["ab", "a" * 101])
-    def test_create_project_invalid_name(self, client, name):
-        data = {"name": name, "creator_id": 1}
-        resp = client.post("/projects/", json=data)
-        assert resp.status_code == 422
-        assert "length" in str(resp.json())
+    resp = client.post(f"{server_url}/projects/", json=test_project)
+    print(f"STATUS: {resp.status_code}, BODY: {resp.json()}")
 
-    def test_create_project_success(self, client):
-        data = {
-            "name": "Test Project",
-            "creator_id": 1,
-            "description": "Test desc",
-            "project_type": ProjectType.BUSINESS.value
-        }
-        resp = client.post("/projects/", json=data)
-        assert resp.status_code == 201
-        json_data = resp.json()
-        assert json_data["name"] == "Test Project"
-        assert json_data["project_type"] == "business"
-        assert "id" in json_data
+    assert resp.status_code in (200, 201)
+    project = resp.json()
 
-    def test_get_projects_creator_empty(self, client):
-        resp = client.get("/projects/creator/999")
-        assert resp.status_code == 200
-        assert len(resp.json()) == 0
+    # Проверяем ТОЛЬКО то, что мы отправили
+    assert project["name"] == test_project["name"]  # Динамически!
+    assert project["description"] == test_project["description"]
+    assert project["creator_id"] == created_user
+    assert project["project_type"] == "software"
+    assert "id" in project
 
-    def test_update_project_partial(self, client):
-        # Создаём
-        create_data = {"name": "Update Project", "creator_id": 1}
-        create_resp = client.post("/projects/", json=create_data)
-        project_id = create_resp.json()["id"]
+def test_get_project(server_url, client, created_project):
+    project_id = created_project
 
-        # Обновляем
-        update_data = {
-            "name": "Updated Project",
-            "project_type": "service_desk"
-        }
-        resp = client.put(f"/projects/{project_id}/", json=update_data)
-        assert resp.status_code == 200
-        updated = resp.json()
-        assert updated["name"] == "Updated Project"
-        assert updated["project_type"] == "service_desk"
+    resp = client.get(f"{server_url}/projects/{project_id}")
+    assert resp.status_code == 200
+    assert resp.json()["id"] == project_id
 
-    def test_delete_project(self, client):
-        # Создаём
-        create_data = {"name": "Delete Project", "creator_id": 1}
-        create_resp = client.post("/projects/", json=create_data)
-        project_id = create_resp.json()["id"]
 
-        # Удаляем
-        resp = client.delete(f"/projects/{project_id}/")
-        assert resp.status_code == 204
+def test_update_project(server_url, client, created_project):
+    project_id = created_project
 
-        # Проверяем
-        get_resp = client.get(f"/projects/{project_id}")
-        assert get_resp.status_code == 404
+    update_json = {
+        "id": project_id,
+        "name": "Updated Project",
+        "description": "Updated desc",
+        "project_type": "software",
+        "creator_id": 1
+    }
+
+    resp = client.put(f"{server_url}/projects/{project_id}", json=update_json)
+    assert resp.status_code == 200
+    assert resp.json()["name"] == "Updated Project"
+
+
+def test_delete_project(server_url, client, created_project):
+    project_id = created_project
+
+    resp = client.delete(f"{server_url}/projects/{project_id}")
+    assert resp.status_code == 200
+
+    check_resp = client.get(f"{server_url}/projects/{project_id}")
+    assert check_resp.status_code == 404

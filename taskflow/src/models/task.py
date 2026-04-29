@@ -26,17 +26,10 @@ from sqlalchemy import Enum as SQLEnum
 if TYPE_CHECKING:
     from .project import ProjectOrm
     from .user import UserOrm
-from taskflow.src.core.database import BaseOrm
-from taskflow.src.models.user import UserOrm
-
-from enum import StrEnum
-
-
-class TaskStatus(StrEnum):
-    TODO = "todo"
-    IN_PROGRESS = "in_progress"
-    REVIEW = "review"
-    DONE = "done"
+from src.core.database import BaseOrm
+from src.models.project import ProjectOrm
+from src.models.user import UserOrm
+from src.schemas.task import Task, TaskStatus, TaskPriority
 
 class TaskOrm(
     BaseOrm,

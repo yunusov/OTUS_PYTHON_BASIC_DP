@@ -46,7 +46,13 @@ class ProjectService:
             if project_data.creator_id
             else project_orm.creator_id
         )
+        assoc = repository.session.execute(stmt).scalar_one_or_none()
 
+        if assoc:
+            assoc.user_id = project_data.creator_id
+            # id не меняется, потому что это update
+
+        # 5. Сохраняем всё
         repository.save()
         return ProjectRead.model_validate(project_orm)
 

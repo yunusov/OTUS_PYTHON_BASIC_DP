@@ -3,16 +3,14 @@ from typing import List
 from src.models import TaskOrm
 from src.utils.loguru_config import AppLogger
 from .base import BaseRepository
-from sqlalchemy.orm import Session
+from typing import List
+from src.models import TaskOrm
+from src.utils.loguru_config import AppLogger
+from .base import BaseRepository
 
-from taskflow.src.models.task import TaskOrm
-from taskflow.src.schemas.task import Task,TaskCreate,TaskUpdate
 
 logger = AppLogger().get_logger()
 
-class TaskRepository:
-    def __init__(self, session: Session):
-        self.session = session
 
 class TaskRepository(BaseRepository):
     model = TaskOrm

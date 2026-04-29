@@ -21,7 +21,8 @@ from taskflow.src.core.database import BaseOrm
 from taskflow.src.models.user import UserOrm
 from taskflow.src.models.task import TaskOrm
 from enum import StrEnum
-
+from sqlalchemy import CheckConstraint, ForeignKey, func, Text, Enum as SQLEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
     from .task import TaskOrm
@@ -71,14 +72,8 @@ class ProjectOrm(
 
     # проверки на длину
     __table_args__ = (
-        CheckConstraint(
-            func.length("name") <= 100,
-            name="project_name_max_length",
-        ),
-        CheckConstraint(
-            func.length("description") <= 1000,
-            name="project_description_max_length",
-        ),
+        CheckConstraint(func.length("name") <= 100, name="project_name_max_length"),
+        CheckConstraint(func.length("description") <= 1000, name="project_description_max_length"),
     )
 
     def __repr__(self) -> str:

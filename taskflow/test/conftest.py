@@ -10,6 +10,7 @@ from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from fastapi.testclient import TestClient
 
+# Добавляем пути к проекту для импорта моделей
 sys.path.insert(0, ".")
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -35,7 +36,7 @@ def db_session():
     # Создаём in-memory SQLite, чтобы тесты не трогали прод БД
     engine = create_engine(
         settings.TEST_DB_URL,
-        echo=False,
+        echo=True,  # включим logging, чтобы видеть SQL (для отладки)
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
@@ -47,8 +48,9 @@ def db_session():
         autoflush=True
     )
     with sync_session() as session:
-        yield session
+        yield session  # возвращаем сессию как фикстуру
 
+    # На всякий случай уничтожаем engine
     engine.dispose()
 
 
@@ -143,6 +145,7 @@ def server_url():
 @pytest.fixture(scope="module")
 def register_url(server_url):
     return "".join([f"{server_url}", settings.api.register_url])
+
 
 @pytest.fixture(scope="module")
 def login_url(server_url):
