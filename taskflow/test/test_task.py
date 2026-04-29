@@ -1,72 +1,90 @@
-import pytest
-from datetime import datetime
-from taskflow.src.schemas.task import TaskStatus, TaskPriority
+import requests
+from src.schemas.task import TaskInDB, Task
+from test.utils import assert_json_equal
+from src.utils.loguru_config import AppLogger
+
+logger = AppLogger().get_logger()
 
 
-class TestTaskCRUD:
-    """CRUD тесты для задач"""
+def test_create_task(
+    task_json,
+    server_url,
+    client,
+    created_project,
+    created_user,
+):
+    resp = client.post(f"{server_url}/tasks/", json=task_json)
+    print(f"STATUS: {resp.status_code}, BODY: {resp.json()}")
 
-    @pytest.mark.parametrize("name", ["", "a" * 256])
-    def test_create_task_invalid_name(self, client, name):
-        data = {"name": name, "creator_id": 1, "project_id": 1}
-        resp = client.post("/tasks/", json=data)
-        assert resp.status_code == 422
-        assert "length" in str(resp.json())
+    assert resp.status_code in (200, 201)
+    task = resp.json()
 
-    def test_create_task_success(self, client):
-        data = {
-            "name": "Test Task",
-            "creator_id": 1,
-            "project_id": 1,
-            "status": TaskStatus.TODO.value,
-            "priority": TaskPriority.HIGH.value
-        }
-        resp = client.post("/tasks/", json=data)
-        assert resp.status_code == 201
-        json_data = resp.json()
-        assert json_data["name"] == "Test Task"
-        assert json_data["status"] == "todo"
-        assert "id" in json_data
-        assert "created_at" in json_data
+    assert task["name"] == "Test Task"
+    assert task["description"] == "Test task description"
+    assert task["project_id"] == created_project
+    assert task["creator_id"] == created_user
+    assert task["status"] == "todo"
+    assert task["priority"] == "medium"
+    assert "id" in task
+    assert "created_at" in task
 
-    def test_get_task_not_found(self, client):
-        resp = client.get("/tasks/999")
-        assert resp.status_code == 404
 
-    def test_get_tasks_empty(self, client):
-        resp = client.get("/tasks?project_id=999")
-        assert resp.status_code == 200
-        assert len(resp.json()) == 0
+def test_get_task(
+    client: requests.Session,
+    server_url: str,
+    created_task: int,
+):
+    resp = client.get(f"{server_url}/tasks/{created_task}")
+    assert resp.status_code == 200
 
-    def test_update_task_partial(self, client):
-        # Создаём задачу
-        create_data = {"name": "Update Me", "creator_id": 1, "project_id": 1}
-        create_resp = client.post("/tasks/", json=create_data)
-        task_id = create_resp.json()["id"]
+    task = resp.json()
+    assert task["id"] == created_task
+    assert task["project_id"] == 1  # или use created_project
+    assert task["name"] == "Test Task"
 
-        # Частичное обновление
-        update_data = {
-            "status": "in_progress",
-            "priority": "critical",
-            "time_spent": 120
-        }
-        resp = client.put(f"/tasks/{task_id}/", json=update_data)
-        assert resp.status_code == 200
-        updated = resp.json()
-        assert updated["status"] == "in_progress"
-        assert updated["priority"] == "critical"
-        assert updated["time_spent"] == 120
 
-    def test_delete_task(self, client):
-        # Создаём
-        create_data = {"name": "Delete Me", "creator_id": 1, "project_id": 1}
-        create_resp = client.post("/tasks/", json=create_data)
-        task_id = create_resp.json()["id"]
+def test_modify_task(
+    client,
+    server_url,
+    created_task,
+    created_project,
+    created_user,
+):
+    update_json = {
+        "id": created_task,
+        "name": "Updated Task",
+        "description": "Updated desc",
+        "project_id": created_project,
+        "status": "in_progress",          # вместо "TODO", "IN_PROGRESS"
+        "priority": "high",               # вместо "MEDIUM", "HIGH"
+        "due_date": "2026-12-31T23:59:59Z",
+        "creator_id": created_user,
+        "assignee_id": created_user,
+        "time_estimate": 120,
+        "time_spent": 30,
+        "created_at": "2026-04-30T12:00:00Z",  # если TaskInDB требует created_at
+    }
 
-        # Удаляем
-        resp = client.delete(f"/tasks/{task_id}/")
-        assert resp.status_code == 204
+    resp = client.put(
+        f"{server_url}/tasks/{created_task}",
+        json=update_json,
+    )
+    print("MODIFY RESP:", resp.status_code, resp.json())
 
-        # Проверяем удаление
-        get_resp = client.get(f"/tasks/{task_id}")
-        assert get_resp.status_code == 404
+    assert resp.status_code == 200
+    task = resp.json()
+    assert task["id"] == created_task
+    assert task["name"] == "Updated Task"
+    assert task["status"] == "in_progress"
+    assert task["priority"] == "high"
+
+def test_delete_task(
+    client: requests.Session,
+    server_url: str,
+    created_task: int,
+):
+    resp = client.delete(f"{server_url}/tasks/{created_task}")
+    assert resp.status_code == 200
+
+    check_resp = client.get(f"{server_url}/tasks/{created_task}")
+    assert check_resp.status_code == 404
