@@ -1,70 +1,50 @@
-from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from taskflow.src.utils.loguru_config import AppLogger
-from taskflow.src.repositories.task_repository import TaskRepository
-from taskflow.src.schemas.task import (
-    TaskCreate, TaskUpdate, TaskOut,
-)
-from taskflow.src.core.database import DbSession, get_db_session
+from src.utils.loguru_config import AppLogger
+from src.core.dependencies import DbSession
+from src.repositories.task_repository import TaskRepository
+from src.schemas.task import TaskInDB, Task
+from src.services.task_service import TaskService
 
 router = APIRouter(prefix="/tasks", tags=["Tasks"])
 logger = AppLogger().get_logger()
 
-
-def get_task_repository(session: DbSession):
+def get_task_repo(session: Session = Depends(DbSession)):
     return TaskRepository(session)
 
-TaskRepo = Annotated[TaskRepository, Depends(get_task_repository)]
-
-
-@router.post("/", response_model=TaskOut, status_code=status.HTTP_201_CREATED)
-def create_task(task: TaskCreate, repository: TaskRepo) -> TaskOut:
-    """Создать новую задачу"""
+@router.post("/", response_model=Task, status_code=status.HTTP_201_CREATED)
+def create_task(
+    task: TaskInDB,
+    repo: TaskRepository = Depends(get_task_repo)
+) -> Task:
+    service = TaskService(repo)
     try:
-        task_orm = repository.create(task)
+        return service.create(task)
     except IntegrityError:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="project_id или assignee_id/creator_id не существует"
-        )
+        raise HTTPException(400, "project_id/creator_id/assignee_id не существует")
 
-    logger.info(f"Задача создана: ID={task_orm.id}")
-    return TaskOut.model_validate(task_orm)
-
-
-@router.get("/{task_id}", response_model=TaskOut)
-def get_task(task_id: int, repository: TaskRepo) -> TaskOut:
-    """Получить задачу по ID"""
-    task = repository.get_by_id(task_id)
+@router.get("/{task_id}", response_model=Task)
+def get_task(task_id: int, repo: TaskRepository = Depends(get_task_repo)) -> Task:
+    task = repo.get_by_id(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Задача не найдена")
-    return TaskOut.model_validate(task)
+    return Task.model_validate(task)
 
+@router.get("/", response_model=list[Task])
+def get_tasks(project_id: int, repo: TaskRepository = Depends(get_task_repo)) -> list[Task]:
+    tasks = repo.get_by_project_id(project_id)
+    return [Task.model_validate(t) for t in tasks]
 
-@router.get("/", response_model=list[TaskOut])
-def get_tasks(project_id: int, repository: TaskRepo) -> list[TaskOut]:
-    """Получить все задачи проекта"""
-    tasks = repository.get_by_project(project_id)
-    return [TaskOut.model_validate(task) for task in tasks]
-
-
-@router.put("/{task_id}", response_model=TaskOut)
-def update_task(
-    task_id: int,
-    task_data: TaskUpdate,
-    repository: TaskRepo
-) -> TaskOut:
-    """Обновить задачу"""
-    task_orm = repository.update(task_id, task_data)
-    if not task_orm:
-        raise HTTPException(status_code=404, detail="Задача не найдена")
-    return TaskOut.model_validate(task_orm)
-
+@router.put("/{task_id}", response_model=Task)
+def update_task(task_id: int, task_data: TaskInDB, repo: TaskRepository = Depends(get_task_repo)) -> Task:
+    task_data.id = task_id
+    service = TaskService(repo)
+    return service.modify(task_data)
 
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_task(task_id: int, repository: TaskRepo) -> None:
-    """Удалить задачу"""
-    if not repository.delete(task_id):
+def delete_task(task_id: int, repo: TaskRepository = Depends(get_task_repo)) -> None:
+    service = TaskService(repo)
+    if not service.delete(task_id):
         raise HTTPException(status_code=404, detail="Задача не найдена")

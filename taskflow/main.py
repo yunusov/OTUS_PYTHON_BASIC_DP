@@ -5,8 +5,8 @@ import uvicorn
 from src.utils.loguru_config import AppLogger
 from src.core.config import settings
 from src.routers import router as auth_router
-from taskflow.src.routers.api.v1.task_router.task import router as task_router
-from taskflow.src.routers.api.v1.project_router.project import router as project_router
+from src.routers.api.v1.task_router.task import router as task_router
+from src.routers.api.v1.project_router.project import router as project_router
 
 
 logger = AppLogger().get_logger()

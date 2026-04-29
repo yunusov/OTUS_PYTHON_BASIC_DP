@@ -1,6 +1,6 @@
 import datetime
-from enum import StrEnum
 from typing import Optional
+from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -10,28 +10,12 @@ class ProjectType(StrEnum):
     SERVICE_DESK = "service_desk"
 
 
-class ProjectBase(BaseModel):
-    name: str = Field(..., min_length=3, max_length=100)
-    description: str = Field(default="", max_length=1000)
+class Project(BaseModel):
+    id: int | None = None
+    name: str
+    description: Optional[str] = None
     creator_id: int
-    project_type: ProjectType = ProjectType.SOFTWARE
-
-
-class ProjectCreate(ProjectBase):
-    """Схема для создания проекта"""
-
-
-class ProjectUpdate(BaseModel):
-    """Схема для обновления проекта"""
-    name: Optional[str] = Field(None, min_length=3, max_length=100)
-    description: Optional[str] = Field(None, max_length=1000)
-    project_type: Optional[ProjectType] = None
-    creator_id: Optional[int] = None
-
-
-class Project(ProjectBase):
-    """Полная схема проекта с ID и timestamps"""
-    id: Optional[int] = None
+    project_type: ProjectType
     created_at: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(datetime.UTC)
     )
@@ -41,7 +25,14 @@ class Project(ProjectBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+    @field_validator("name")
+    def check_name_len(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Название проекта: 3–100 символов!")
+        return value
 
-class ProjectOut(Project):
-    """Схема для ответа API (с creator данными при необходимости)"""
-    pass
+    @field_validator("description")
+    def check_description_len(cls, value):
+        if value is not None and len(value) > 1000:
+            raise ValueError("Описание: максимум 1000 символов!")
+        return value

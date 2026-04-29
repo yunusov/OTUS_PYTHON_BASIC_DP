@@ -10,7 +10,7 @@ from sqlalchemy.orm import (
     mapped_column,
 )
 
-from taskflow.src.core.config import settings
+from src.core.config import settings
 
 
 # asyncio.run(get_version_async())
