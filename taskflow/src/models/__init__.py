@@ -6,4 +6,4 @@ from sqlalchemy.orm import configure_mappers
 
 configure_mappers()
 
-__all__ = ["ProjectOrm", "UserOrm", "TaskOrm"]
+__all__ = ["ProjectOrm", "UserOrm", "TaskOrm", ]

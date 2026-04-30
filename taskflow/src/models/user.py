@@ -6,6 +6,7 @@ from src.core.security import hash_password
 from src.schemas import UserInDB
 
 
+
 class UserOrm(BaseOrm):
 
     __tablename__ = "tf_users"
@@ -49,6 +50,13 @@ class UserOrm(BaseOrm):
     is_active: Mapped[bool]
 
     project: Mapped[list["ProjectOrm"]] = relationship(back_populates="creator")
+    created_tasks: Mapped[list["TaskOrm"]] = relationship(
+        "TaskOrm",
+        foreign_keys="TaskOrm.creator_id",  # ← явно указываем creator_id
+        back_populates="creator"
+    )
+
+
 
     __table_args__ = (
         CheckConstraint(
