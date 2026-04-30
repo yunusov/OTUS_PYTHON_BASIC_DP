@@ -1,75 +1,50 @@
-# src/api/project.py
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-
-from src.core.dependencies import DbSession, ProjectRepo
-from src.models.project import ProjectOrm
-from src.repositories.project_repository import ProjectRepository
-from src.schemas.project import Project
+from fastapi import APIRouter, Depends, HTTPException
+from src.core.dependencies import ProjectRepo
+from src.schemas import Project, ProjectInDB
+from src.services import ProjectService
 from src.utils.loguru_config import AppLogger
-
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 logger = AppLogger().get_logger()
 
 
-@router.post("/")
+@router.post("/", response_model=Project)
 def create_project(
-    data: Project,
-    repo: ProjectRepo,
+        project: ProjectInDB,
+        repository: ProjectRepo ,
 ) -> Project:
-    logger.info("data")
-    try:
-        projectOrm = ProjectOrm(data)
-        repo.create(projectOrm)
-        repo.save()
-        logger.info(f"Проект {data} создан")
-        return Project.model_validate(projectOrm)
-    except IntegrityError:
-        logger.info("creator_id не существует")
-        raise HTTPException(400, "creator_id не существует")
+    """Создать проект"""
+    return ProjectService().create(project, repository)
+
+
+@router.put("/{project_id}", response_model=Project)
+def modify_project(
+        project_id: int,
+        project: ProjectInDB,
+        repository: ProjectRepo,
+) -> Project:
+    """Модифицировать проект"""
+    if project.id != project_id:
+        raise HTTPException(status_code=400, detail="ID в path не совпадает с body")
+    return ProjectService().modify(project, repository)
+
+
+@router.delete("/{project_id}")
+def remove_project(
+        project_id: int,
+        repository: ProjectRepo ,
+) -> bool:
+    """Удалить проект"""
+    return ProjectService().delete(project_id, repository)
 
 
 @router.get("/{project_id}", response_model=Project)
 def get_project(
-    project_id: int,
-    repo: ProjectRepo,
+        project_id: int,
+        repository: ProjectRepo,
 ) -> Project:
-    project = repo.get_by_id(project_id)
+    """Получить проект по ID"""
+    project = repository.get_by_id(project_id)
     if not project:
         raise HTTPException(status_code=404, detail="Проект не найден")
-    return project
-
-
-@router.get("/", response_model=list[Project])
-def get_projects(
-    creator_id: int,
-    repo: ProjectRepo,
-) -> str:
-    # projects = repo.get_all(creator_id=creator_id)
-    return "projects"
-
-
-@router.put("/{project_id}", response_model=Project)
-def update_project(
-    project_id: int,
-    project_data: Project,
-    repo: ProjectRepo,
-) -> str:
-    # project_data.id = project_id
-    # project = repo.modify(project_data)
-    # if not project:
-    #     raise HTTPException(status_code=404, detail="Проект не найден")
-    return "project"
-
-
-@router.delete("/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_project(
-    project_id: int,
-    repo: ProjectRepo,
-) -> None:
-    # if not repo.delete(project_id):
-    #     raise HTTPException(status_code=404, detail="Проект не найден")
-    ...
+    return Project.model_validate(project)

@@ -18,6 +18,7 @@ from src.models import UserOrm, ProjectOrm, TaskOrm  # явно импортир
 from main import app
 from src.schemas.project import ProjectType
 
+
 @pytest.fixture
 def db_session():
     # Создаём in-memory SQLite, чтобы тесты не трогали прод БД
@@ -86,8 +87,6 @@ def modify_json():
     }
 
 
-
-
 @pytest.fixture
 def project_json():
     return {
@@ -95,7 +94,48 @@ def project_json():
         "name": "New project",
         "description": "Test description",
         "project_type": "software",
-        "creator_id": 1,
-        "created_at": "2026-01-01T10:23:12.012Z",
-        "updated_at": "2026-01-01T10:23:12.012Z",    
+        "creator_id": 1
     }
+
+
+@pytest.fixture
+def created_user(client, server_url, user_json):
+    """Создаёт пользователя и возвращает его ID"""
+    resp = client.post(f"{server_url}/auth/register/", json=user_json)
+    assert resp.status_code == 200, f"Failed to create user: {resp.json()}"
+    return resp.json()["id"]
+
+
+@pytest.fixture
+def created_project(client, server_url, project_json, created_user):
+    """Создаёт проект и возвращает его ID"""
+    resp = client.post(f"{server_url}/projects/", json=project_json)
+    assert resp.status_code in (200, 201), f"Failed to create project: {resp.json()}"
+    return resp.json()["id"]
+
+
+@pytest.fixture
+def task_json(created_project, created_user):
+    """JSON для создания задачи (под TaskInDB/TaskOrm)"""
+    return {
+        "id": 1,
+        "name": "Test Task",
+        "description": "Test task description",
+        "project_id": created_project,
+        "status": "todo",
+        "priority": "medium",
+        "due_date": "2026-05-01T12:00:00Z",
+        "creator_id": created_user,
+        "assignee_id": created_user,
+        "time_estimate": 60,
+        "time_spent": 0,
+        "created_at": "2026-04-30T12:00:00Z",
+    }
+
+
+@pytest.fixture
+def created_task(client, server_url, task_json, created_project, created_user):
+    """Создаёт задачу и возвращает task_id"""
+    resp = client.post(f"{server_url}/tasks/", json=task_json)
+    assert resp.status_code in (200, 201), f"Failed to create task: {resp.json()}"
+    return resp.json()["id"]

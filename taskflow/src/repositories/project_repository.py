@@ -16,9 +16,16 @@ class ProjectRepository(BaseRepository):
         )
         return result.scalar_one_or_none()
 
-    def get_by_user_id(self, user_id: int) -> list[ProjectOrm]:
-        '''Проекты пользователя'''
+    def get_by_creator_id(self, creator_id: int) -> list[ProjectOrm]:
+        '''Проекты создателя'''
         result = self.session.execute(
-            select(ProjectOrm).where(ProjectOrm.user_id == user_id)
+            select(ProjectOrm).where(ProjectOrm.creator_id == creator_id)
         )
         return result.scalars().all()
+
+    def get_by_name(self, name: str) -> ProjectOrm | None:
+        '''Проект по названию'''
+        result = self.session.execute(
+            select(ProjectOrm).where(ProjectOrm.name == name)
+        )
+        return result.scalar_one_or_none()

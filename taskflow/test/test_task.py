@@ -1,117 +1,90 @@
-# tests/tasks/test_tasks.py
-
+import requests
+from src.schemas.task import TaskInDB, Task
+from test.utils import assert_json_equal
 from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()
 
 
-# def test_create_task(task_json, server_url, client):
-#     resp = client.post(
-#         f"{server_url}/tasks/",
-#         json=task_json,
-#     )
-#     assert resp.status_code == 200
-#     resp_json = resp.json()
-#     # сравниваем поля, кроме id/created_at
-#     for key, val in task_json.items():
-#         if key not in ("id", "created_at"):
-#             assert resp_json[key] == val, f"Mismatch on {key}"
-#     assert "id" in resp_json
-#     assert "created_at" in resp_json
+def test_create_task(
+    task_json,
+    server_url,
+    client,
+    created_project,
+    created_user,
+):
+    resp = client.post(f"{server_url}/tasks/", json=task_json)
+    print(f"STATUS: {resp.status_code}, BODY: {resp.json()}")
+
+    assert resp.status_code in (200, 201)
+    task = resp.json()
+
+    assert task["name"] == "Test Task"
+    assert task["description"] == "Test task description"
+    assert task["project_id"] == created_project
+    assert task["creator_id"] == created_user
+    assert task["status"] == "todo"
+    assert task["priority"] == "medium"
+    assert "id" in task
+    assert "created_at" in task
 
 
-# def test_modify_task(task_json, server_url, client):
-#     # 1. создаём задачу
-#     resp = client.post(
-#         f"{server_url}/tasks/",
-#         json=task_json,
-#     )
-#     assert resp.status_code == 200
-#     created = resp.json()
+def test_get_task(
+    client: requests.Session,
+    server_url: str,
+    created_task: int,
+):
+    resp = client.get(f"{server_url}/tasks/{created_task}")
+    assert resp.status_code == 200
 
-#     # 2. модифицируем
-#     modified = task_json.copy()
-#     modified["id"] = created["id"]
-#     modified["title"] = "Updated task title"
-#     modified["description"] = "Updated description"
-
-#     resp = client.put(
-#         f"{server_url}/tasks/{created['id']}",
-#         json=modified,
-#     )
-#     assert resp.status_code == 200
-#     resp_json = resp.json()
-#     assert resp_json["title"] == "Updated task title"
-#     assert resp_json["description"] == "Updated description"
+    task = resp.json()
+    assert task["id"] == created_task
+    assert task["project_id"] == 1  # или use created_project
+    assert task["name"] == "Test Task"
 
 
-# def test_modify_task_not_found(server_url, client):
-#     invalid_id = 999999
-#     data = {
-#         "id": invalid_id,
-#         "title": "Some task",
-#         "description": "desc",
-#     }
-#     resp = client.put(
-#         f"{server_url}/tasks/{invalid_id}",
-#         json=data,
-#     )
-#     # у тебя в сервисе raise ValueError с "Задача с таким ID не существует!"
-#     assert resp.status_code == 404  # или 400, если так настроено
-#     resp_json = resp.json()
-#     assert (
-#         "Задача с таким ID не существует!" in resp_json["detail"]
-#         or "not found" in resp_json["detail"].lower()
-#     )
+def test_modify_task(
+    client,
+    server_url,
+    created_task,
+    created_project,
+    created_user,
+):
+    update_json = {
+        "id": created_task,
+        "name": "Updated Task",
+        "description": "Updated desc",
+        "project_id": created_project,
+        "status": "in_progress",          # вместо "TODO", "IN_PROGRESS"
+        "priority": "high",               # вместо "MEDIUM", "HIGH"
+        "due_date": "2026-12-31T23:59:59Z",
+        "creator_id": created_user,
+        "assignee_id": created_user,
+        "time_estimate": 120,
+        "time_spent": 30,
+        "created_at": "2026-04-30T12:00:00Z",  # если TaskInDB требует created_at
+    }
 
+    resp = client.put(
+        f"{server_url}/tasks/{created_task}",
+        json=update_json,
+    )
+    print("MODIFY RESP:", resp.status_code, resp.json())
 
-# def test_delete_task(task_json, server_url, client):
-#     # 1. создаём
-#     resp = client.post(
-#         f"{server_url}/tasks/",
-#         json=task_json,
-#     )
-#     assert resp.status_code == 200
-#     created = resp.json()
+    assert resp.status_code == 200
+    task = resp.json()
+    assert task["id"] == created_task
+    assert task["name"] == "Updated Task"
+    assert task["status"] == "in_progress"
+    assert task["priority"] == "high"
 
-#     # 2. удаляем
-#     resp = client.delete(
-#         f"{server_url}/tasks/{created['id']}",
-#     )
-#     assert resp.status_code == 200
-#     resp_json = resp.json()
-#     assert resp_json["success"]  # или {"deleted": True}, подправь под свой формат
+def test_delete_task(
+    client: requests.Session,
+    server_url: str,
+    created_task: int,
+):
+    resp = client.delete(f"{server_url}/tasks/{created_task}")
+    assert resp.status_code == 200
 
-#     # 3. проверяем, что больше не доступна
-#     resp = client.get(
-#         f"{server_url}/tasks/{created['id']}",
-#     )
-#     assert resp.status_code in (404, 400)  # как ты возвращаешь для несуществующей задачи
-
-
-# def test_task_constraints(task_json, server_url, client):
-#     # 1. слишком короткий title
-#     bad_title = task_json.copy()
-#     bad_title["title"] = "x"
-#     resp = client.post(
-#         f"{server_url}/tasks/",
-#         json=bad_title,
-#     )
-#     assert resp.status_code == 422
-#     resp_json = resp.json()
-#     assert "title" in resp_json["detail"][0]["loc"]
-#     assert "short" in resp_json["detail"][0]["msg"].lower()
-
-#     # 2. слишком длинное description
-#     long_desc = task_json.copy()
-#     long_desc["title"] = "Valid title"
-#     long_desc["description"] = "a" * 1001
-#     resp = client.post(
-#         f"{server_url}/tasks/",
-#         json=long_desc,
-#     )
-#     assert resp.status_code == 422
-#     resp_json = resp.json()
-#     assert "description" in resp_json["detail"][0]["loc"]
-#     assert "too long" in resp_json["detail"][0]["msg"].lower()
-
+    check_resp = client.get(f"{server_url}/tasks/{created_task}")
+    assert check_resp.status_code == 404

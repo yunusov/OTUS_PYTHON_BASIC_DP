@@ -24,13 +24,11 @@ UserRepo = Annotated[UserRepository, Depends(get_user_repository)]
 
 
 def get_task_repository(session: DbSession):
-    from src.repositories.task_repository import TaskRepository
     return TaskRepository(session)
 
 TaskRepo = Annotated[TaskRepository, Depends(get_task_repository)]
 
 def get_project_repository(session: DbSession):
-    from src.repositories.project_repository import ProjectRepository
     return ProjectRepository(session)
 
 ProjectRepo = Annotated[ProjectRepository, Depends(get_project_repository)]  # ✅ ]
