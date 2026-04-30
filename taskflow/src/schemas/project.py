@@ -1,14 +1,14 @@
 import datetime
-from enum import StrEnum
+from enum import StrEnum, auto
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class ProjectType(StrEnum):
-    SOFTWARE = "software"
-    BUSINESS = "business"
-    SERVICE_DESK = "service_desk"
+    SOFTWARE = auto()
+    BUSINESS = auto()
+    SERVICE_DESK = auto()
 
 
 class Project(BaseModel):

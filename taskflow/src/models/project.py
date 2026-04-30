@@ -34,8 +34,13 @@ class ProjectOrm(BaseOrm):
         ForeignKey("tf_users.id"), nullable=False, index=True
     )
     project_type: Mapped[ProjectType] = mapped_column(
-        SQLEnum(ProjectType, name="project_type_enum", inherit_schema=True),
-        default=ProjectType.SOFTWARE,
+        SQLEnum(
+            ProjectType,
+            name="project_type_enum",
+            values_callable=lambda x: [e.value for e in x],
+            inherit_schema=True,
+        ),
+        default=ProjectType.SOFTWARE.value,
         nullable=False,
         index=True,
     )
