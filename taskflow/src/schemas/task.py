@@ -1,21 +1,21 @@
 from datetime import datetime
-from enum import StrEnum
+from enum import StrEnum,auto
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class TaskStatus(StrEnum):
     """Статусы задач"""
-    TODO = "todo"
-    IN_PROGRESS = "in_progress"
-    DONE = "done"
+    TODO = auto()
+    IN_PROGRESS =auto()
+    DONE = auto()
 
 
 class TaskPriority(StrEnum):
     """Приоритеты задач"""
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
+    LOW = auto()
+    MEDIUM = auto()
+    HIGH = auto()
 
 
 class Task(BaseModel):

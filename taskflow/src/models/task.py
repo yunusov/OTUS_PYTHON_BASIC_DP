@@ -47,12 +47,24 @@ class TaskOrm(BaseOrm):
     )
 
     status: Mapped[TaskStatus] = mapped_column(
-        SQLEnum(TaskStatus, name="task_status_enum", inherit_schema=True),
+        SQLEnum(
+            TaskStatus,
+            name="task_status_enum",
+            values_callable=lambda x: [e.value for e in x],
+            inherit_schema=True,
+        ),
+        default=TaskStatus.TODO.value,
         nullable=False,
         index=True,
     )
     priority: Mapped[TaskPriority] = mapped_column(
-        SQLEnum(TaskPriority, name="task_priority_enum", inherit_schema=True),
+        SQLEnum(
+            TaskPriority,
+            name="task_priority_enum",
+            values_callable=lambda x: [e.value for e in x],
+            inherit_schema=True,
+        ),
+        default=TaskPriority.MEDIUM.value,
         nullable=False,
         index=True,
     )

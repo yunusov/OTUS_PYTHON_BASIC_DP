@@ -6,34 +6,27 @@ from src.schemas.project import ProjectType
 logger = AppLogger().get_logger()
 
 
-def test_create_task(
-    task_json,
+def test_create_project(
+    project_json,
     server_url,
     client,
-    created_project,
     created_user,
 ):
-    # 1. Убедимся, что user уже есть (created_user из фикстуры)
-    # 2. Создаём task
-    resp: requests.Response = client.post(
-        f"{server_url}/tasks/",
-        json=task_json,
-    )
-    print(f"STATUS: {resp.status_code}, BODY: {resp.json()}")  # отладка
+    test_project = project_json.copy()
+    test_project["creator_id"] = created_user
+
+    resp = client.post(f"{server_url}/projects/", json=test_project)
+    print(f"STATUS: {resp.status_code}, BODY: {resp.json()}")
 
     assert resp.status_code in (200, 201)
-    task = resp.json()
+    project = resp.json()
 
-    # 3. Проверяем данные
-    assert task["name"] == "Test Task"
-    assert task["description"] == "Test task description"
-    assert task["project_id"] == created_project
-    assert task["status"] == "todo"
-    assert task["priority"] == "medium"
-    assert task["creator_id"] == created_user
-    assert "id" in task  # БД добавила!
-    assert "created_at" in task
-
+    # Проверяем ТОЛЬКО то, что мы отправили
+    assert project["name"] == test_project["name"]  # Динамически!
+    assert project["description"] == test_project["description"]
+    assert project["creator_id"] == created_user
+    assert project["project_type"] == "software"
+    assert "id" in project
 
 def test_get_project(server_url, client, created_project):
     project_id = created_project

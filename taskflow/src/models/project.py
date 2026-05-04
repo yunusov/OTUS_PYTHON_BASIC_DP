@@ -13,6 +13,7 @@ from sqlalchemy import Enum as SQLEnum
 from src.core.database import BaseOrm, created_at
 from src.models.user import UserOrm
 from src.schemas.project import ProjectInDB, ProjectType
+from src.models import user_project
 
 
 class ProjectOrm(BaseOrm):
@@ -27,7 +28,7 @@ class ProjectOrm(BaseOrm):
         )
 
     # обязательные поля
-    name: Mapped[str] = mapped_column(Text, nullable=False, server_default="")
+    name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
     creator_id: Mapped[int] = mapped_column(
@@ -48,6 +49,12 @@ class ProjectOrm(BaseOrm):
     # связи
     creator: Mapped["UserOrm"] = relationship("UserOrm", back_populates="project")
     tasks: Mapped[list["TaskOrm"]] = relationship(back_populates="project")
+    users: Mapped[list["UserOrm"]] = relationship(
+        "UserOrm",
+        secondary="tf_user_project",
+        back_populates="projects",
+        lazy="selectin",
+    )
 
     # id и created_at — как у User
     id: Mapped[int] = mapped_column(primary_key=True)
