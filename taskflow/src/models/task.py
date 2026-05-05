@@ -94,4 +94,5 @@ class TaskOrm(
             "length(name) <= 255",
             name="task_name_max_length",
         ),
+
     )

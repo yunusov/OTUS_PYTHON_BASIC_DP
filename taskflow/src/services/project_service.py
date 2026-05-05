@@ -97,6 +97,7 @@ class ProjectService:
         project_id: int,
         repository: ProjectRepo,
     ) -> bool:
+        """Удаление проекта"""
         project_orm = repository.get_by_id(project_id)
         if project_orm is None:
             return False

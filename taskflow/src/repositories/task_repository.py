@@ -4,6 +4,8 @@ from typing import List
 from .base import BaseRepository
 from src.models import TaskOrm
 from src.utils.loguru_config import AppLogger
+from .base import BaseRepository
+
 
 logger = AppLogger().get_logger()
 

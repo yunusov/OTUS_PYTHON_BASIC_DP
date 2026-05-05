@@ -40,6 +40,7 @@ class ProjectBase(BaseModel):
     @field_validator("project_type", mode="before")
     def normalize_project_type(cls, value: str) -> str:
         mapping = {
+            "SOFTWARE": "software",
             "BUSINESS": "business",
             "SERVICE_DESK": "service_desk",
             "SOFTWARE": "software",

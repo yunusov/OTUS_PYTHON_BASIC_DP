@@ -22,6 +22,8 @@ logger = AppLogger().get_logger()
 main_app = FastAPI(
     lifespan=lifespan,
 )
+app.include_router(router=task_router)
+app.include_router(router=project_router)
 
 
 main_app.include_router(router=api_router, prefix=settings.api.PREFIX)

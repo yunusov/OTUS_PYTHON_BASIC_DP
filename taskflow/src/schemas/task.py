@@ -34,6 +34,7 @@ class TaskBase(BaseModel):
     assignee_id: Optional[int] = None
     time_estimate: Optional[int] = None
     time_spent: Optional[int] = None
+    created_at: datetime
 
 
     model_config = ConfigDict(from_attributes=True)
