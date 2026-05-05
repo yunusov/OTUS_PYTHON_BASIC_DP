@@ -4,6 +4,8 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.database import BaseOrm, created_at
 from src.core.security import hash_password
 from src.schemas import UserInDB
+from src.models import user_project
+
 
 
 class UserOrm(BaseOrm):
@@ -49,6 +51,19 @@ class UserOrm(BaseOrm):
     is_active: Mapped[bool]
 
     project: Mapped[list["ProjectOrm"]] = relationship(back_populates="creator")
+    projects: Mapped[list["ProjectOrm"]] = relationship(
+        "ProjectOrm",
+        secondary="tf_user_project",  # Alembic создаст tf_user_project
+        back_populates="users",
+        lazy="selectin",
+    )
+    created_tasks: Mapped[list["TaskOrm"]] = relationship(
+        "TaskOrm",
+        foreign_keys="TaskOrm.creator_id",  # ← явно указываем creator_id
+        back_populates="creator"
+    )
+
+
 
     __table_args__ = (
         CheckConstraint(
