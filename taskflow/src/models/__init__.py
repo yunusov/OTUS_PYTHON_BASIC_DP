@@ -1,9 +1,19 @@
+from .base import BaseOrm
 from .user import UserOrm
 from .project import ProjectOrm
 from .task import TaskOrm
+from .access_token import AccessTokenOrm
+from .user_project import UserProjectOrm
 
 from sqlalchemy.orm import configure_mappers
 
 configure_mappers()
 
-__all__ = ["ProjectOrm", "UserOrm", "TaskOrm"]
+__all__ = [
+    "AccessTokenOrm",
+    "BaseOrm",
+    "ProjectOrm",
+    "UserOrm",
+    "TaskOrm",
+    "UserProjectOrm",
+]

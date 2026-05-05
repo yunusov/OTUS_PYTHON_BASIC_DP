@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from sqlalchemy.orm import Session
 
-from src.core.database import BaseOrm
+from src.models import BaseOrm
 
 
 class BaseRepository:

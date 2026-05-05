@@ -1,52 +1,48 @@
 from datetime import datetime
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
-    func,
-    Index,
+    Integer,
+    String,
     Text,
     DateTime,
-    Integer,
+    Enum as SQLEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.core.database import BaseOrm, created_at, updated_at
+from .base import BaseOrm
+from .mixins import (
+    DateCreateUpdateMixin,
+    IntIdPkMixin,
+)
+from src.schemas import (
+    TaskPriority,
+    TaskStatus,
+)
 
-from enum import StrEnum
-from sqlalchemy import Enum as SQLEnum
-
-
-class TaskStatus(StrEnum):
-    TODO = "todo"
-    IN_PROGRESS = "in_progress"
-    REVIEW = "review"
-    DONE = "done"
-
-
-class TaskPriority(StrEnum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
+if TYPE_CHECKING:
+    from .project import ProjectOrm
+    from .user import UserOrm
 
 
-class TaskOrm(BaseOrm):
+class TaskOrm(
+    BaseOrm,
+    IntIdPkMixin,
+    DateCreateUpdateMixin,
+):
     __tablename__ = "tf_tasks"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(
-        Text,
-        server_default="",
-        nullable=False,
-    )
+    # Основные поля
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
     project_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("tf_projects.id"),
-        index=False,
-        nullable=True,
+        ForeignKey("tf_projects.id"), nullable=True, index=True
     )
+
     status: Mapped[TaskStatus] = mapped_column(
         SQLEnum(
             TaskStatus,
@@ -54,9 +50,9 @@ class TaskOrm(BaseOrm):
             values_callable=lambda x: [e.value for e in x],
             inherit_schema=True,
         ),
-        default=TaskStatus.TODO,
+        default=TaskStatus.TODO.value,
         nullable=False,
-        index=False,
+        index=True,
     )
     priority: Mapped[TaskPriority] = mapped_column(
         SQLEnum(
@@ -65,44 +61,37 @@ class TaskOrm(BaseOrm):
             values_callable=lambda x: [e.value for e in x],
             inherit_schema=True,
         ),
-        default=TaskPriority.MEDIUM,
+        default=TaskPriority.MEDIUM.value,
         nullable=False,
-        index=False,
+        index=True,
     )
     due_date: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
     creator_id: Mapped[int] = mapped_column(
-        ForeignKey("tf_users.id"),
-        index=False,
-        nullable=False,
+        ForeignKey("tf_users.id"), nullable=False, index=True
     )
     assignee_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("tf_users.id"),
-        index=False,
-        nullable=True,
+        ForeignKey("tf_users.id"), nullable=True, index=True
     )
-    time_estimate: Mapped[Optional[int]] = mapped_column(
-        Integer, nullable=True
-    )  # в часах
-    time_spent: Mapped[Optional[int]] = mapped_column(Integer, default=0, nullable=True)
 
-    created_at: Mapped[created_at]
-    updated_at: Mapped[updated_at]
+    time_estimate: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    time_spent: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
-    project: Mapped[Optional["ProjectOrm"]] = relationship(
-        "ProjectOrm", back_populates="task"
+    project: Mapped["ProjectOrm"] = relationship("ProjectOrm", back_populates="tasks")
+    creator: Mapped["UserOrm"] = relationship(
+        "UserOrm",
+        foreign_keys=[creator_id],
+        back_populates="created_tasks",
     )
-    creator: Mapped["UserOrm"] = relationship("UserOrm", foreign_keys=[creator_id])
     assignee: Mapped[Optional["UserOrm"]] = relationship(
-        "UserOrm", foreign_keys=[assignee_id]
+        "UserOrm",
+        foreign_keys=[assignee_id],
+        lazy="selectin",
     )
 
     __table_args__ = (
-        Index("ix_tf_tasks_project_id", "project_id"),
-        Index("ix_tf_tasks_status", "status"),
-        Index("ix_tf_tasks_priority", "priority"),
-        Index("ix_tf_tasks_assignee_id", "assignee_id"),
         CheckConstraint(
-            func.length(name) <= 255,
+            "length(name) <= 255",
             name="task_name_max_length",
         ),
     )

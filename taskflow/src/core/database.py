@@ -1,40 +1,55 @@
-from sqlalchemy import create_engine, func
-from sqlalchemy.orm import sessionmaker
-import datetime
-from typing import Annotated
+from functools import lru_cache
+from typing import AsyncGenerator
 
-from sqlalchemy import text
-from sqlalchemy.orm import (
-    DeclarativeBase,
-    Mapped,
-    mapped_column,
-)
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import Session, sessionmaker
 
-from src.core.config import settings
+from src.core import settings
+from .async_session_wrapper import AsyncSessionWrapper
 
 
-# asyncio.run(get_version_async())
+class DatabaseHelper:
+    def __init__(
+        self,
+        url: str,
+        echo: bool,
+        echo_pool: bool,
+        pool_size: int,
+        max_overflow: int,
+    ):
+        self.engine: Engine = create_engine(
+            url=url,
+            echo=echo,
+            echo_pool=echo_pool,
+            pool_size=pool_size,
+            max_overflow=max_overflow,
+        )
+        self.session_factory: sessionmaker[Session] = sessionmaker(
+            bind=self.engine,
+            autoflush=True,  # для совместимости с FastAPI_Users
+            autocommit=False,
+            expire_on_commit=False,
+        )
 
-sync_engine = create_engine(url=settings.DATABASE_URL, echo=True)
-#async_engine = create_async_engine(url=settings.DATABASE_URL_ASYNC, echo=True)
+    async def dispose(self):
+        self.engine.dispose()
 
-session_factory = sessionmaker(sync_engine)
-#async_session_factory = async_sessionmaker(async_engine)
-
-
-int_pk = Annotated[int, mapped_column(primary_key=True, autoincrement=True)]
-
-created_at = Annotated[
-    datetime.datetime, mapped_column(server_default=func.now())
-]
-updated_at = Annotated[
-    datetime.datetime,
-    mapped_column(
-        server_default=text("TIMEZONE('utc', now())"),
-        onupdate=lambda *args: datetime.datetime.now(datetime.UTC),
-    ),
-]
+    async def get_session(self) -> AsyncGenerator[AsyncSessionWrapper]:
+        with self.session_factory() as session:
+            try:
+                yield AsyncSessionWrapper(session)
+                session.commit()
+            except Exception:
+                session.rollback()
+                raise
 
 
-class BaseOrm(DeclarativeBase):
-    id: Mapped[int_pk]
+@lru_cache(maxsize=1)
+def get_db_helper() -> DatabaseHelper:
+    return DatabaseHelper(
+        url=settings.DATABASE_URL,
+        echo=settings.db.echo,
+        echo_pool=settings.db.echo_pool,
+        pool_size=settings.db.pool_size,
+        max_overflow=settings.db.max_overflow,
+    )

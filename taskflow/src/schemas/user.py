@@ -1,19 +1,16 @@
 import datetime
+from fastapi_users import schemas
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    field_validator,
+)
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-
-class User(BaseModel):
+class UserBase:
     """Класс для представления сущности пользователь"""
-
-    id: int
-    username: str
-    fullname: str
-    email: EmailStr
-    is_active: bool
-    created_at: datetime.datetime = Field(
-        default_factory=lambda: datetime.datetime.now(datetime.UTC)
-    )
+    username: str | None = None
+    fullname: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -40,24 +37,29 @@ class User(BaseModel):
             raise ValueError("Email должно быть менее 50 символов в длину!")
         return value
 
+    def __repr__(self) -> str:
+        return self.fullname or ""
 
-class UserInDB(User):
-    hashed_password: str
 
-    @field_validator("hashed_password")
-    def check_hashed_password_len(cls, value):
+class UserRead(schemas.BaseUser[int], UserBase):
+    """Класс для представления сущности пользователь для чтения"""
+    created_at: datetime.datetime
+    updated_at: datetime.datetime
+
+
+class UserCreate(schemas.BaseUserCreate, UserBase):
+
+    @field_validator("password")
+    def check_password_len(cls, value):
         if not value:
             raise ValueError("Пароль не должен быть пустым!")
         return value
 
-    def __repr__(self) -> str:
-        return "".join(
-            [
-                f"{self.__repr_name__()}(id={self.id},",
-                f"username={self.username},",
-                f"fullname={self.fullname},",
-                f"email={self.email},",
-                f"is_active={self.is_active},",
-                f"created_at={self.created_at})",
-            ]
-        )
+
+class UserUpdate(schemas.BaseUserUpdate, UserBase):
+    pass
+
+
+class UserRegisteredNotification(BaseModel):
+    user: UserRead
+    ts: int

@@ -1,22 +1,30 @@
-import sys
+# test/conftest.py
+
 import pytest
+import random
+import requests
+
 from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from fastapi.testclient import TestClient
 
-sys.path.insert(0, ".")
-
-from src.core.database import BaseOrm
-from src.core.dependencies import get_db_session
+from main import main_app
+from src.core import database
+from src.core.async_session_wrapper import AsyncSessionWrapper
+from src.core.auth.user_manager import UserManager
+from src.models import BaseOrm, UserOrm  # noqa
 from src.core.config import settings
-from src.models import UserOrm  # noqa
-from main import app
+from src.core import dependencies
+from src.utils.loguru_config import AppLogger
+
+logger = AppLogger().get_logger()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def db_session():
+    # Создаём in-memory SQLite, чтобы тесты не трогали прод БД
     engine = create_engine(
-        url="sqlite:///:memory:",
+        settings.TEST_DB_URL,
         echo=False,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
@@ -26,47 +34,151 @@ def db_session():
         engine,
         class_=Session,
         expire_on_commit=False,
+        autoflush=True,
     )
     with sync_session() as session:
         yield session
+
     engine.dispose()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def client(db_session):
-    def override_get_db():
-        yield db_session
+    # Синхронный override
+    def override_get_db_session():
+        try:
+            yield db_session
+            db_session.commit()
+        except Exception:
+            db_session.rollback()
+            raise
 
-    app.dependency_overrides.clear()
-    app.dependency_overrides[get_db_session] = override_get_db
-    yield TestClient(app)
+    main_app.dependency_overrides.clear()
+    main_app.dependency_overrides[dependencies.get_db_session] = override_get_db_session
 
-    app.dependency_overrides.clear()
+    # Async override для fastapi_users
+    async def override_get_async_session():
+        yield AsyncSessionWrapper(db_session)
 
-@pytest.fixture
-def server_url():
-    return f"http://{settings.SERVER_IP}:{settings.SERVER_PORT}"
+    main_app.dependency_overrides[database.get_db_helper().get_session] = (
+        override_get_async_session
+    )
+
+    yield TestClient(main_app)
+
+    main_app.dependency_overrides.clear()
+
 
 @pytest.fixture(scope="module")
+def token(client, login_url, user_json, project_user, verify_url, verify_token):
+    # login user
+    resp: requests.Response = client.post(
+        verify_url,
+        json={"token": verify_token},
+    )
+
+    resp: requests.Response = client.post(
+        login_url,
+        data={
+            "username": project_user["email"],  # username = email
+            "password": user_json["password"],
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    logger.debug(f"Token: {resp.json()}")
+    return resp.json()["access_token"]
+
+
+@pytest.fixture(scope="module")
+def verify_token(client, request_verify_token_url, project_user):
+    original = UserManager.on_after_request_verify
+    captured = {}
+
+    # monkeypath on_after_request_verify
+    async def capture_token(self, user, token, request=None):
+        captured["token"] = token
+        return await original(self, user, token, request)
+
+    UserManager.on_after_request_verify = capture_token
+
+    # request verify token
+    requests.Response = client.post(
+        request_verify_token_url,
+        json={
+            "email": project_user["email"],
+        },
+    )
+    logger.debug(f"Token: {captured}")
+    yield captured["token"]
+
+    UserManager.on_after_request_verify = original
+
+
+@pytest.fixture(scope="module")
+def project_user(client, register_url, user_json):
+    return create_project_user(client, register_url, user_json)
+
+@pytest.fixture(scope="module")
+def project_users(client, register_url, user_json):
+    """Создаёт 5 пользователей и возвращает список ID"""
+    return [create_project_user(client, register_url, user_json) for _ in range(5)]
+
+def create_project_user(client, register_url, user_json):
+    """Создаёт пользователя и возвращает его ID"""
+    json = user_json.copy()
+    json["username"] = "".join([json["username"], str(random.randint(1, 1000))])
+    json["email"] = json["email"].replace("user", "u" + str(random.randint(1, 1000)))
+    logger.info(json)
+    resp: requests.Response = client.post(register_url, json=json)
+    return resp.json()
+
+
+@pytest.fixture(scope="module")
+def request_verify_token_url(server_url):
+    return "".join([f"{server_url}", settings.api.auth_url, "/request-verify-token"])
+
+
+@pytest.fixture(scope="module")
+def verify_url(server_url):
+    return "".join([f"{server_url}", settings.api.auth_url, "/verify"])
+
+
+@pytest.fixture(scope="module")
+def server_url():
+    return f"http://{settings.run.SERVER_IP}:{settings.run.SERVER_PORT}/"
+
+
+@pytest.fixture(scope="module")
+def register_url(server_url):
+    return "".join([f"{server_url}", settings.api.register_url])
+
+
+@pytest.fixture(scope="module")
+def login_url(server_url):
+    return "".join([f"{server_url}", settings.api.auth_url, "/login"])
+
+
+@pytest.fixture(scope="session")
 def user_json():
+    # Данные для теста регистрации пользователя
     return {
-        "id": 1,
-        "username": "VVVV",
-        "fullname": "VVVVVV",
         "email": "user@example.com",
-        "hashed_password": "string",
+        "password": "123",
         "is_active": True,
-        "created_at": "2026-04-18T10:23:12.012Z",
+        "is_superuser": False,
+        "is_verified": False,
+        "username": "user",
+        "fullname": "user",
     }
 
-@pytest.fixture
-def modify_json():
-    return {
-        "id": 1,
-        "username": "USERNAME",
-        "fullname": "FULLNAME",
-        "email": "user123@example.com",
-        "hashed_password": "string123",
-        "is_active": False,
-        "created_at": "2026-01-01T10:23:12.012Z",
-    }
+
+@pytest.fixture(scope="module")
+def excluded_list() -> list:
+    return [
+        "created_at",
+        "updated_at",
+        "id",
+        "password",
+        "is_verified",
+        "due_date",
+    ]
