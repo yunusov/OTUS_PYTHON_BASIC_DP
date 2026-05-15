@@ -7,10 +7,6 @@ from src.schemas import (
     UserRead,
     UserCreate,
 )
-from src.utils.loguru_config import AppLogger
-
-
-logger = AppLogger().get_logger()
 
 router = APIRouter(
     prefix=settings.api.v1.auth,

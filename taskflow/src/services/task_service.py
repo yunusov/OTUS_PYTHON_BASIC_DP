@@ -1,6 +1,6 @@
 from src.core.dependencies import TaskRepo
 from src.models import TaskOrm
-from src.schemas.task import Task, TaskInDB
+from src.schemas import TaskCreate, TaskUpdate, TaskRead
 from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()
@@ -10,27 +10,23 @@ class TaskService:
 
     def create(
             self,
-            task_data: TaskInDB,
+            task_data: TaskCreate,
             repository: TaskRepo,
-    ) -> Task:
+    ) -> TaskRead:
         """Создание задачи"""
-        task_orm = TaskOrm(task_data)  # ← как ProjectOrm(project_data)
+        task_orm = TaskOrm(**task_data.model_dump())
         repository.create(task_orm)
         repository.save()
-        repository.refresh(task_orm)
         logger.info(f"Task {task_orm.id} created")
-        return Task.model_validate(task_orm)
+        return TaskRead.model_validate(task_orm)
 
     def modify(
             self,
-            task_data: TaskInDB,
+            task_id: int,
+            task_data: TaskUpdate,
             repository: TaskRepo,
-    ) -> Task:
+    ) -> TaskRead:
         """Изменение задачи (аналог ProjectService.modify)"""
-        task_id = task_data.id
-        if not task_id:
-            raise ValueError("ID задачи не указан!")
-
         task_orm = repository.get_by_id(task_id)
         if task_orm is None:
             raise ValueError("Задача с таким ID не существует!")
@@ -42,12 +38,13 @@ class TaskService:
         ]
         for field in fields_to_update:
             if hasattr(task_data, field):
-                setattr(task_orm, field, getattr(task_data, field))
+                value = getattr(task_data, field)
+                old_value = getattr(task_orm, field)
+                setattr(task_orm, field, value if value else old_value)
 
         repository.save()
-        repository.refresh(task_orm)
         logger.info(f"Task {task_orm.id} updated")
-        return Task.model_validate(task_orm)
+        return TaskRead.model_validate(task_orm)
 
     def delete(
             self,

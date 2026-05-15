@@ -21,7 +21,7 @@ from src.models import (
     BaseOrm,
     UserOrm,
 )
-from src.schemas import ProjectInDB, ProjectType
+from src.schemas import ProjectType
 
 
 class ProjectOrm(
@@ -30,13 +30,6 @@ class ProjectOrm(
     DateCreateUpdateMixin,
 ):
     __tablename__ = "tf_projects"
-
-    def __init__(self, project: ProjectInDB):
-        super().__init__(
-            name=project.name,
-            description=project.description,
-            creator_id=project.creator_id,
-        )
 
     name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
@@ -65,10 +58,6 @@ class ProjectOrm(
         back_populates="projects",
         lazy="selectin",
     )
-
-    # id и created_at — как у User
-    id: Mapped[int] = mapped_column(primary_key=True)
-    created_at: Mapped[created_at]
 
     # проверки на длину
     __table_args__ = (

@@ -11,17 +11,13 @@ class ProjectType(StrEnum):
     SERVICE_DESK = auto()
 
 
-class Project(BaseModel):
+class ProjectBase(BaseModel):
     """Класс для представления сущности проект"""
 
-    id: int
-    name: str
-    description: str
-    project_type: ProjectType
-    creator_id: int
-    created_at: datetime.datetime = Field(
-        default_factory=lambda: datetime.datetime.now(datetime.UTC)
-    )
+    name: str | None = None
+    description: str | None = None
+    project_type: ProjectType | None = None
+    creator_id: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -41,14 +37,18 @@ class Project(BaseModel):
     @field_validator("project_type", mode="before")
     def normalize_project_type(cls, value: str) -> str:
         mapping = {
-            "SOFTWARE": "software",
-            "BUSINESS": "business",
-            "SERVICE_DESK": "service_desk",
+            "BUSINESS"     : "business",
+            "SERVICE_DESK" : "service_desk",
+            "SOFTWARE"     : "software",
         }
         return mapping.get(value.upper(), value.lower())
 
-
-class ProjectInDB(Project):
+class ProjectRead(ProjectBase):
+    id: int
+    created_at: datetime.datetime = Field(
+        default_factory=lambda: datetime.datetime.now(datetime.UTC)
+    )
+    
     def __repr__(self) -> str:
         return "".join(
             [
@@ -60,3 +60,9 @@ class ProjectInDB(Project):
                 f"created_at={self.created_at})",
             ]
         )
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class ProjectUpdate(ProjectBase):
+    pass

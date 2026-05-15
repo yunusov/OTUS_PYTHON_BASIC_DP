@@ -13,13 +13,10 @@ from sqlalchemy import CheckConstraint, Text, func, select
 from sqlalchemy.orm import Mapped, declared_attr, mapped_column, relationship
 
 if TYPE_CHECKING:
-    # from src.core.types.user_id import UserIdType
     from .access_token import AccessTokenOrm
     from .project import ProjectOrm
     from src.core.async_session_wrapper import AsyncSessionWrapper
 
-from src.core.security import hash_password
-from src.schemas import UserCreate
 from .base import BaseOrm
 from .mixins import (
     DateCreateUpdateMixin,
