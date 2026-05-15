@@ -1,21 +1,33 @@
 from .user import (
-    UserBase,
     UserCreate,
     UserRead,
     UserUpdate,
 )
 from .project import (
-    Project,
-    ProjectInDB,
+    ProjectCreate,
+    ProjectRead,
+    ProjectUpdate,
     ProjectType,
+)
+from .task import (
+    TaskCreate,
+    TaskRead,
+    TaskUpdate,
+    TaskStatus,
+    TaskPriority,
 )
 
 __all__ = [
-    "UserBase",
     "UserCreate",
     "UserUpdate",
     "UserRead",
-    "Project",
-    "ProjectInDB",
+    "ProjectCreate",
+    "ProjectRead",
+    "ProjectUpdate",
     "ProjectType",
+    "TaskCreate",
+    "TaskRead",
+    "TaskUpdate",
+    "TaskStatus",
+    "TaskPriority",
 ]

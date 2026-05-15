@@ -18,9 +18,8 @@ class TaskPriority(StrEnum):
     HIGH = auto()
 
 
-class Task(BaseModel):
-    """Схема для представления задачи в ответе (с id и created_at)."""
-    id: int
+class TaskBase(BaseModel):
+    """Схема для представления задачи в ответе"""
     name: str
     description: Optional[str] = None
     project_id: Optional[int] = None
@@ -31,7 +30,7 @@ class Task(BaseModel):
     assignee_id: Optional[int] = None
     time_estimate: Optional[int] = None
     time_spent: Optional[int] = None
-    created_at: datetime
+    
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -55,10 +54,11 @@ class Task(BaseModel):
         if v is not None and v < 0:
             raise ValueError("Время не может быть отрицательным")
         return v
-
-
-class TaskInDB(Task):
+    
+class TaskRead(TaskBase):
     """Схема для создания задач в БД."""
+    id: int
+    created_at: datetime
 
     def __repr__(self) -> str:
         return "".join(
@@ -71,3 +71,12 @@ class TaskInDB(Task):
                 f"creator_id={self.creator_id})",
             ]
         )
+
+
+class TaskCreate(TaskBase):
+    """Схема для создания задач в БД."""
+    pass
+
+class TaskUpdate(TaskBase):
+    """Схема для создания задач в БД."""
+    pass

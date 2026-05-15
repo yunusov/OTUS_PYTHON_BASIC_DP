@@ -18,10 +18,12 @@ class BaseConfig(BaseSettings):
 class ApiV1Prefix(BaseModel):
     prefix: str = "/v1"
     auth: str = "/auth"
-    users: str = "/users"
     messages: str = "/messages"
-    service: str = "/service"
+    projects: str = "/projects"
     register_ep: str = "/register"
+    service: str = "/service"
+    tasks: str = "/tasks"
+    users: str = "/users"
 
 
 class ApiPrefix(BaseModel):
@@ -44,15 +46,29 @@ class ApiPrefix(BaseModel):
 
     @property
     def auth_url(self) -> str:
-        # api/v1/auth/
+        # api/v1/auth
         parts = (self.PREFIX, self.v1.prefix, self.v1.auth)
         path = "".join(parts)
         return path.removeprefix("/")
     
     @property
     def users_url(self) -> str:
-        # api/v1/users/
+        # api/v1/users
         parts = (self.PREFIX, self.v1.prefix, "/users")
+        path = "".join(parts)
+        return path.removeprefix("/")
+    
+    @property
+    def projects_url(self) -> str:
+        # api/v1/projects
+        parts = (self.PREFIX, self.v1.prefix, "/projects")
+        path = "".join(parts)
+        return path.removeprefix("/")
+    
+    @property
+    def tasks_url(self) -> str:
+        # api/v1/tasks
+        parts = (self.PREFIX, self.v1.prefix, "/tasks")
         path = "".join(parts)
         return path.removeprefix("/")
 

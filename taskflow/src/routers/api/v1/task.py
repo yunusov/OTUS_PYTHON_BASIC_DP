@@ -1,34 +1,33 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 
+from src.core.config import settings
 from src.core.dependencies import TaskRepo
-from src.schemas.task import Task, TaskInDB
-from src.services.task_service import TaskService
+from src.schemas import TaskRead, TaskCreate, TaskUpdate
+from src.services import TaskService
 from src.utils.loguru_config import AppLogger
 
 
-router = APIRouter(prefix="/tasks", tags=["Tasks"])
 logger = AppLogger().get_logger()
+router = APIRouter(prefix=settings.api.v1.tasks, tags=["Tasks"])
 
 
-@router.post("/", response_model=Task)
+@router.post("/", response_model=TaskRead)
 def create_task(
-    task: TaskInDB,
+    task: TaskCreate,
     repository: TaskRepo,
-) -> Task:
+) -> TaskRead:
     """Создать задачу"""
     return TaskService().create(task, repository)
 
 
-@router.put("/{task_id}", response_model=Task)
+@router.put("/{task_id}", response_model=TaskRead)
 def modify_task(
     task_id: int,
-    task: TaskInDB,
+    task: TaskUpdate,
     repository: TaskRepo,
-) -> Task:
+) -> TaskRead:
     """Модифицировать задачу"""
-    if task.id != task_id:
-        raise HTTPException(400, "ID в path не совпадает с body")
-    return TaskService().modify(task, repository)
+    return TaskService().modify(task_id, task, repository)
 
 
 @router.delete("/{task_id}")
@@ -40,13 +39,13 @@ def delete_task(
     return TaskService().delete(task_id, repository)
 
 
-@router.get("/{task_id}", response_model=Task)
+@router.get("/{task_id}", response_model=TaskRead)
 def get_task(
     task_id: int,
     repository: TaskRepo,
-) -> Task:
+) -> TaskRead:
     """Получить задачу по ID"""
     task_orm = repository.get_by_id(task_id)
     if not task_orm:
         raise HTTPException(404, "Task not found")
-    return Task.model_validate(task_orm)
+    return TaskRead.model_validate(task_orm)

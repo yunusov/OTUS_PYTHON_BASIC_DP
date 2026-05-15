@@ -5,23 +5,21 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
-    Index,
     Integer,
     String,
     Text,
     DateTime,
-    func,
     Enum as SQLEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import BaseOrm
+from src.schemas import TaskPriority
 
 from .mixins import (
     DateCreateUpdateMixin,
     IntIdPkMixin,
 )
-from src.schemas.task import Task, TaskStatus, TaskPriority
 
 if TYPE_CHECKING:
     from .project import ProjectOrm
@@ -33,30 +31,12 @@ class TaskStatus(StrEnum):
     REVIEW = "review"
     DONE = "done"
 
-from datetime import datetime
-from typing import Optional
-
-
 class TaskOrm(
     BaseOrm,
     IntIdPkMixin,
     DateCreateUpdateMixin,
 ):
     __tablename__ = "tf_tasks"
-
-    def __init__(self, task: Task):
-        super().__init__(
-            name=task.name,
-            description=task.description,
-            project_id=task.project_id,
-            status=task.status,
-            priority=task.priority,
-            due_date=task.due_date,
-            creator_id=task.creator_id,
-            assignee_id=task.assignee_id,
-            time_estimate=task.time_estimate,
-            time_spent=task.time_spent,
-        )
 
     # Основные поля
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)

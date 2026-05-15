@@ -1,6 +1,11 @@
+from src.utils.loguru_config import AppLogger
+
+logger = AppLogger().get_logger()
+
 def assert_json_equal(expected: dict, actual: dict, exclude: list[str] | None = None):
     expected_copy = expected.copy()
     actual_copy = actual.copy()
+    logger.info(f"{expected_copy=}, {actual_copy=}, {exclude=}")
 
     if exclude:
         for field in exclude:

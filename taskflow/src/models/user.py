@@ -18,8 +18,6 @@ if TYPE_CHECKING:
     from .project import ProjectOrm
     from src.core.async_session_wrapper import AsyncSessionWrapper
 
-from src.core.security import hash_password
-from src.schemas import UserCreate
 from .base import BaseOrm
 from .mixins import (
     DateCreateUpdateMixin,
