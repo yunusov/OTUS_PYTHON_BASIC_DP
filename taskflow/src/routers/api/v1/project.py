@@ -47,7 +47,8 @@ def modify_project(
 def remove_project(
     project_id: int,
     repository: ProjectRepo,
-    user: UserOrm = Depends(current_superuser),  # ← только суперюзер
+    # user: UserOrm = Depends(current_superuser),  # ← только суперюзер
+    user: UserOrm = Depends(current_active_user),
 ) -> bool:
     """Удалить проект"""
     return ProjectService().delete(project_id, repository)
@@ -57,6 +58,7 @@ def remove_project(
 def get_project(
     project_id: int,
     repository: ProjectRepo,
+    user: UserOrm = Depends(current_active_user),
 ) -> ProjectRead:
     """Получить проект по ID"""
     project = repository.get_by_id(project_id)

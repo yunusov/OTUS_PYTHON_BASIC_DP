@@ -61,12 +61,12 @@ def test_wrong_authentication(login_url, client):
     assert "LOGIN_BAD_CREDENTIALS" in resp_json["detail"]
 
 
-def test_authentication(user_json, login_url, users_url, client, excluded_list):
+def test_authentication(project_user, user_json, login_url, users_url, client, excluded_list):
     # login user
     resp: requests.Response = client.post(
         login_url,
         data={
-            "username": user_json["email"],  # username = email
+            "username": project_user["email"],  # username = email
             "password": user_json["password"],
         },
         headers={"Content-Type": "application/x-www-form-urlencoded"},
@@ -79,5 +79,5 @@ def test_authentication(user_json, login_url, users_url, client, excluded_list):
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 200
-    assert_json_equal(user_json, resp.json(), exclude=excluded_list)
+    assert_json_equal(project_user, resp.json(), exclude=excluded_list)
 

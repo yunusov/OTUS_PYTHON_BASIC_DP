@@ -1,9 +1,7 @@
 # test/inventory/conftest.py
 
 import random
-
 import pytest
-import requests
 
 from src.core.config import settings
 from src.utils.loguru_config import AppLogger
@@ -12,29 +10,26 @@ logger = AppLogger().get_logger()
 
 
 @pytest.fixture
-def project_user(client, register_url, user_json):
-    """Создаёт пользователя и возвращает его ID"""
-    json = user_json.copy()
-    json["username"] = "".join([json["username"], str(random.randint(1, 1000))])
-    json["email"] = json["email"].replace("user", "u" + str(random.randint(1, 1000)))
-    logger.info(json)
-    resp: requests.Response = client.post(register_url, json=json)
-    return resp.json()
-
-
-@pytest.fixture
-def project(client, projects_api_url, project_json):
+def project(client, projects_api_url, project_json, token):
     """Создаёт проект и возвращает его ID"""
     json = project_json.copy()
     json["name"] = " ".join([json["name"], str(random.randint(1, 1000))])
-    resp = client.post(projects_api_url % "", json=json)
+    resp = client.post(
+        projects_api_url % "",
+        json=json,
+        headers={"Authorization": f"Bearer {token}"},
+    )
     return resp.json()
 
 
 @pytest.fixture
-def task(client, tasks_api_url, task_json):
+def task(client, tasks_api_url, task_json, token):
     """Создаёт задачу и возвращает task_id"""
-    resp = client.post(tasks_api_url % "", json=task_json)
+    resp = client.post(
+        tasks_api_url % "",
+        json=task_json,
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert resp.status_code == 200
     return resp.json()
 
