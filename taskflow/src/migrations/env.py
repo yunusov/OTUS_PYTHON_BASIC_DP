@@ -7,9 +7,12 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-from src.models import TaskOrm, ProjectOrm, UserOrm #noqa
-from src.core.database import BaseOrm
-from src.core.config import settings
+from src.models.base import BaseOrm
+from src.models.task import TaskOrm #noqa
+from src.models.project import ProjectOrm #noqa
+from src.models.user import UserOrm #noqa
+from src.models.access_token import AccessTokenOrm #noqa
+from src.core import settings
 
 config = context.config
 

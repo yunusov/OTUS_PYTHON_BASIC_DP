@@ -1,32 +1,37 @@
+from __future__ import annotations
+
 from fastapi import Depends
 from sqlalchemy.orm import Session
 from typing import Annotated
 
-from src.repositories import UserRepository
-from src.repositories.task_repository import TaskRepository
-from src.repositories.project_repository import ProjectRepository
-from .database import session_factory
+from src.core.database import get_db_helper
+from src.repositories import (
+    UserRepository,
+    TaskRepository,
+    ProjectRepository,
+)
+from src.utils.loguru_config import AppLogger
+logger = AppLogger().get_logger()
+
+db_helper = get_db_helper()
 
 def get_db_session():
-    session = session_factory()
-    try:
-        yield session
-    finally:
-        session.close()
+    yield db_helper.session_factory()
 
 DbSession = Annotated[Session, Depends(get_db_session)]
+
 
 def get_user_repository(session: DbSession):
     return UserRepository(session)
 
-UserRepo = Annotated[UserRepository, Depends(get_user_repository)]
-
+UserRepo = Annotated["UserRepository", Depends(get_user_repository)]
 
 
 def get_task_repository(session: DbSession):
     return TaskRepository(session)
 
 TaskRepo = Annotated[TaskRepository, Depends(get_task_repository)]
+
 
 def get_project_repository(session: DbSession):
     return ProjectRepository(session)

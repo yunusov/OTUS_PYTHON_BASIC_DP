@@ -1,33 +1,36 @@
-from enum import StrEnum
-from typing import Optional
-
+from typing import TYPE_CHECKING, Optional
 from sqlalchemy import (
     CheckConstraint,
     ForeignKey,
     func,
     Text,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Enum as SQLEnum
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.core.database import BaseOrm, created_at
-from src.models.user import UserOrm
-from src.schemas.project import ProjectInDB, ProjectType
-from src.models import user_project
+from .mixins import (
+    DateCreateUpdateMixin,
+    IntIdPkMixin,
+)
+
+if TYPE_CHECKING:
+    from .task import TaskOrm
+    from .user import UserOrm
+
+from src.models import (
+    BaseOrm,
+    UserOrm,
+)
+from src.schemas import ProjectType
 
 
-class ProjectOrm(BaseOrm):
+class ProjectOrm(
+    BaseOrm,
+    IntIdPkMixin,
+    DateCreateUpdateMixin,
+):
     __tablename__ = "tf_projects"
 
-    def __init__(self, project: ProjectInDB):
-        super().__init__(
-            name=project.name,
-            description=project.description,
-            creator_id=project.creator_id,
-
-        )
-
-    # обязательные поля
     name: Mapped[str] = mapped_column(Text, nullable=False, unique=True)
     description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
 
@@ -55,10 +58,6 @@ class ProjectOrm(BaseOrm):
         back_populates="projects",
         lazy="selectin",
     )
-
-    # id и created_at — как у User
-    id: Mapped[int] = mapped_column(primary_key=True)
-    created_at: Mapped[created_at]
 
     # проверки на длину
     __table_args__ = (
