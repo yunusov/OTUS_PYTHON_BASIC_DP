@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from .project import ProjectOrm
     from src.core.async_session_wrapper import AsyncSessionWrapper
 
-from .base import BaseOrm
+
 from .mixins import (
     DateCreateUpdateMixin,
     IntIdPkMixin,

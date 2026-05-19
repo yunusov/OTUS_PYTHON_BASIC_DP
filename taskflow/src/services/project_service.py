@@ -1,6 +1,8 @@
 from src.core.dependencies import ProjectRepo
 from src.models import ProjectOrm
 from src.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
+from sqlalchemy import select
+from src.models import user_project
 
 from src.utils.loguru_config import AppLogger
 
@@ -46,6 +48,7 @@ class ProjectService:
             if project_data.creator_id
             else project_orm.creator_id
         )
+        stmt = select(user_project).where(user_project.c.project_id == project_id)
         assoc = repository.session.execute(stmt).scalar_one_or_none()
 
         if assoc:

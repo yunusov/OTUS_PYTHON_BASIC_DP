@@ -4,12 +4,11 @@ from fastapi_users import schemas
 from pydantic import BaseModel, ConfigDict, field_validator
 
 
-class UserBase(BaseModel):
+class UserBase:
     """Класс для представления сущности пользователь"""
 
     username: str | None = None
     fullname: str | None = None
-    email: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
