@@ -35,15 +35,3 @@ def get_project_repository(session: DbSession):
     return ProjectRepository(session)
 
 ProjectRepo = Annotated[ProjectRepository, Depends(get_project_repository)]
-
-
-
-def get_task_repository(session: DbSession):
-    return TaskRepository(session)
-
-TaskRepo = Annotated[TaskRepository, Depends(get_task_repository)]
-
-def get_project_repository(session: DbSession):
-    return ProjectRepository(session)
-
-ProjectRepo = Annotated[ProjectRepository, Depends(get_project_repository)]

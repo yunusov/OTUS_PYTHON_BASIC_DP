@@ -17,7 +17,6 @@ class TaskService:
         task_orm = TaskOrm(**task_data.model_dump())
         repository.create(task_orm)
         repository.save()
-        repository.refresh(task_orm)
         logger.info(f"Task {task_orm.id} created")
         return TaskRead.model_validate(task_orm)
 
@@ -28,10 +27,6 @@ class TaskService:
             repository: TaskRepo,
     ) -> TaskRead:
         """Изменение задачи (аналог ProjectService.modify)"""
-        task_id = task_data.id
-        if not task_id:
-            raise ValueError("ID задачи не указан!")
-
         task_orm = repository.get_by_id(task_id)
         if task_orm is None:
             raise ValueError("Задача с таким ID не существует!")
@@ -48,7 +43,6 @@ class TaskService:
                 setattr(task_orm, field, value if value else old_value)
 
         repository.save()
-        repository.refresh(task_orm)
         logger.info(f"Task {task_orm.id} updated")
         return TaskRead.model_validate(task_orm)
 

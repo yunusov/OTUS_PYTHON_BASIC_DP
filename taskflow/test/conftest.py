@@ -8,7 +8,7 @@ from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from fastapi.testclient import TestClient
 
-from taskflow.main import main_app
+from main import main_app
 from src.core import database
 from src.core.async_session_wrapper import AsyncSessionWrapper
 from src.core.auth.user_manager import UserManager
