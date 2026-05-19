@@ -1,5 +1,4 @@
 from datetime import datetime
-from enum import StrEnum
 from typing import TYPE_CHECKING, Optional
 
 from sqlalchemy import (
@@ -10,26 +9,20 @@ from sqlalchemy import (
     Text,
     DateTime,
     Enum as SQLEnum,
-    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import BaseOrm
-from src.schemas import TaskPriority
-
 from .mixins import (
     DateCreateUpdateMixin,
     IntIdPkMixin,
 )
-from sqlalchemy import Enum as SQLEnum
+from src.schemas import TaskPriority
+from src.schemas.task import TaskStatus, TaskPriority
 
 if TYPE_CHECKING:
     from .project import ProjectOrm
     from .user import UserOrm
-from src.models import BaseOrm
-from src.models.project import ProjectOrm
-from src.models.user import UserOrm
-from src.schemas.task import TaskStatus, TaskPriority
 
 
 class TaskOrm(

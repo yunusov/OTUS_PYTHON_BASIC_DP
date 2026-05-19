@@ -31,7 +31,10 @@ def db_session():
     )
     BaseOrm.metadata.create_all(bind=engine)
     sync_session = sessionmaker(
-        engine, class_=Session, expire_on_commit=False, autoflush=True
+        engine,
+        class_=Session,
+        expire_on_commit=False,
+        autoflush=True,
     )
     with sync_session() as session:
         yield session
@@ -60,6 +63,7 @@ def client(db_session):
     main_app.dependency_overrides[database.get_db_helper().get_session] = (
         override_get_async_session
     )
+
     yield TestClient(main_app)
 
     main_app.dependency_overrides.clear()

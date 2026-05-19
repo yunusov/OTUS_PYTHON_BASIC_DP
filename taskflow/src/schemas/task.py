@@ -1,15 +1,15 @@
 from datetime import datetime
-from enum import auto, StrEnum
-
-
+from enum import StrEnum, auto
 from typing import Optional
-
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    field_validator,
+)
 
 
 class TaskStatus(StrEnum):
     """Статусы задач"""
-
     TODO = auto()
     IN_PROGRESS = auto()
     DONE = auto()
@@ -17,7 +17,6 @@ class TaskStatus(StrEnum):
 
 class TaskPriority(StrEnum):
     """Приоритеты задач"""
-
     LOW = auto()
     MEDIUM = auto()
     HIGH = auto()
@@ -25,7 +24,6 @@ class TaskPriority(StrEnum):
 
 class TaskBase(BaseModel):
     """Схема для представления задачи в ответе"""
-
     name: str
     description: Optional[str] = None
     project_id: Optional[int] = None
@@ -36,6 +34,7 @@ class TaskBase(BaseModel):
     assignee_id: Optional[int] = None
     time_estimate: Optional[int] = None
     time_spent: Optional[int] = None
+
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -63,7 +62,6 @@ class TaskBase(BaseModel):
 
 class TaskRead(TaskBase):
     """Схема для создания задач в БД."""
-
     id: int
     created_at: datetime
 
@@ -82,11 +80,9 @@ class TaskRead(TaskBase):
 
 class TaskCreate(TaskBase):
     """Схема для создания задач в БД."""
-
     pass
 
 
 class TaskUpdate(TaskBase):
     """Схема для создания задач в БД."""
-
     pass

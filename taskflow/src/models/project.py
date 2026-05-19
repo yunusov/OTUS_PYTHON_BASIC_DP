@@ -1,16 +1,20 @@
-from typing import TYPE_CHECKING
-
-from typing import Optional
-
-
+from typing import TYPE_CHECKING, Optional
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    func,
+    Text,
+    Enum as SQLEnum,
+)
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    relationship,
+)
 from .mixins import (
     DateCreateUpdateMixin,
     IntIdPkMixin,
 )
-from src.models import BaseOrm
-
-from sqlalchemy import CheckConstraint, ForeignKey, func, Text, Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 if TYPE_CHECKING:
     from .task import TaskOrm
@@ -60,9 +64,13 @@ class ProjectOrm(
 
     # проверки на длину
     __table_args__ = (
-        CheckConstraint(func.length("name") <= 100, name="project_name_max_length"),
         CheckConstraint(
-            func.length("description") <= 1000, name="project_description_max_length"
+            func.length("name") <= 100,
+            name="project_name_max_length",
+        ),
+        CheckConstraint(
+            func.length("description") <= 1000,
+            name="project_description_max_length",
         ),
     )
 
