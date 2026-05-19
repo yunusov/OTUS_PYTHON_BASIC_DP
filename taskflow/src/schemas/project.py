@@ -1,8 +1,11 @@
 import datetime
 from enum import StrEnum, auto
-
-
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+)
 
 
 class ProjectType(StrEnum):
@@ -37,9 +40,9 @@ class ProjectBase(BaseModel):
     @field_validator("project_type", mode="before")
     def normalize_project_type(cls, value: str) -> str:
         mapping = {
-            "BUSINESS": "business",
-            "SERVICE_DESK": "service_desk",
-            "SOFTWARE": "software",
+            "BUSINESS"     : "business",
+            "SERVICE_DESK" : "service_desk",
+            "SOFTWARE"     : "software",
         }
         return mapping.get(value.upper(), value.lower())
 

@@ -5,10 +5,8 @@ from starlette.middleware.sessions import SessionMiddleware
 import uvicorn
 
 from src.utils.loguru_config import AppLogger
-from src.core import get_db_helper
+from src.core import get_db_helper, settings
 from src.routers import router as api_router
-
-from src.core.config import settings
 
 
 @asynccontextmanager

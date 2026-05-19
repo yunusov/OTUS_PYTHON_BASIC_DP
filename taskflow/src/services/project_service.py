@@ -1,9 +1,8 @@
-from src.core.dependencies import ProjectRepo
-from src.models import ProjectOrm
-from src.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 from sqlalchemy import select
-from src.models import user_project
 
+from src.core.dependencies import ProjectRepo
+from src.models import ProjectOrm, user_project
+from src.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()

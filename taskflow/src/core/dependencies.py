@@ -17,7 +17,9 @@ db_helper = get_db_helper()
 
 def get_db_session():
     yield db_helper.session_factory()
+
 DbSession = Annotated[Session, Depends(get_db_session)]
+
 
 def get_user_repository(session: DbSession):
     return UserRepository(session)

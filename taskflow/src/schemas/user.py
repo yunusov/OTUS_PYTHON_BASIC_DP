@@ -1,12 +1,14 @@
 import datetime
-
 from fastapi_users import schemas
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    field_validator,
+)
 
 
 class UserBase:
     """Класс для представления сущности пользователь"""
-
     username: str | None = None
     fullname: str | None = None
 
@@ -41,7 +43,6 @@ class UserBase:
 
 class UserRead(schemas.BaseUser[int], UserBase):
     """Класс для представления сущности пользователь для чтения"""
-
     created_at: datetime.datetime
     updated_at: datetime.datetime
 
