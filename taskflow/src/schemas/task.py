@@ -38,6 +38,7 @@ class TaskBase(BaseModel):
 
 
 
+
     model_config = ConfigDict(from_attributes=True)
 
     @field_validator("name")
