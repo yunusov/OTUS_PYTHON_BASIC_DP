@@ -4,11 +4,12 @@ from fastapi_users import schemas
 from pydantic import BaseModel, ConfigDict, field_validator
 
 
-class UserBase():
+class UserBase(BaseModel):
     """Класс для представления сущности пользователь"""
 
     username: str | None = None
     fullname: str | None = None
+    email: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -38,10 +39,13 @@ class UserBase():
     def __repr__(self) -> str:
         return self.fullname or ""
 
+
 class UserRead(schemas.BaseUser[int], UserBase):
     """Класс для представления сущности пользователь для чтения"""
+
     created_at: datetime.datetime
     updated_at: datetime.datetime
+
 
 class UserCreate(schemas.BaseUserCreate, UserBase):
 
@@ -51,8 +55,10 @@ class UserCreate(schemas.BaseUserCreate, UserBase):
             raise ValueError("Пароль не должен быть пустым!")
         return value
 
+
 class UserUpdate(schemas.BaseUserUpdate, UserBase):
     pass
+
 
 class UserRegisteredNotification(BaseModel):
     user: UserRead

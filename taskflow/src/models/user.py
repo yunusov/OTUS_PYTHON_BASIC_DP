@@ -23,8 +23,8 @@ from .mixins import (
     IntIdPkMixin,
 )
 
-from taskflow.src.core.database import BaseOrm, created_at
-from taskflow.src.schemas.user import User
+from src.models import BaseOrm
+
 
 class SQLAlchemyUserDatabase(SQLAlchemyUserDatabaseGeneric):
 

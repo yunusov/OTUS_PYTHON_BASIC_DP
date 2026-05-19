@@ -1,26 +1,14 @@
-from typing import TYPE_CHECKING, Optional
-from datetime import datetime
+from typing import TYPE_CHECKING
+
 from typing import Optional
-from sqlalchemy import (
-    CheckConstraint,
-    ForeignKey,
-    func,
-    Text,
-    DateTime,
-    text,
-)
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 
 from .mixins import (
     DateCreateUpdateMixin,
     IntIdPkMixin,
 )
-from taskflow.src.core.database import BaseOrm
-from taskflow.src.models.user import UserOrm
-from taskflow.src.models.task import TaskOrm
-from enum import StrEnum
+from src.models import BaseOrm
+
 from sqlalchemy import CheckConstraint, ForeignKey, func, Text, Enum as SQLEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -73,7 +61,9 @@ class ProjectOrm(
     # проверки на длину
     __table_args__ = (
         CheckConstraint(func.length("name") <= 100, name="project_name_max_length"),
-        CheckConstraint(func.length("description") <= 1000, name="project_description_max_length"),
+        CheckConstraint(
+            func.length("description") <= 1000, name="project_description_max_length"
+        ),
     )
 
     def __repr__(self) -> str:

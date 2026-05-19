@@ -26,10 +26,11 @@ from sqlalchemy import Enum as SQLEnum
 if TYPE_CHECKING:
     from .project import ProjectOrm
     from .user import UserOrm
-from src.core.database import BaseOrm
+from src.models import BaseOrm
 from src.models.project import ProjectOrm
 from src.models.user import UserOrm
-from src.schemas.task import Task, TaskStatus, TaskPriority
+from src.schemas.task import TaskStatus, TaskPriority
+
 
 class TaskOrm(
     BaseOrm,
@@ -98,5 +99,4 @@ class TaskOrm(
             "length(name) <= 255",
             name="task_name_max_length",
         ),
-
     )

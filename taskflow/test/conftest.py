@@ -1,7 +1,5 @@
 # test/conftest.py
 
-import sys
-import os
 import pytest
 import random
 
@@ -10,14 +8,6 @@ from sqlalchemy import StaticPool, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from fastapi.testclient import TestClient
 
-# Добавляем пути к проекту для импорта моделей
-sys.path.insert(0, ".")
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-from taskflow.src.core.database import BaseOrm, get_db_session
-from taskflow.src.core.config import settings
-from taskflow.src.models import UserOrm  # noqa
-from taskflow.main import app
 from main import main_app
 from src.core import database
 from src.core.async_session_wrapper import AsyncSessionWrapper
@@ -27,7 +17,6 @@ from src.core.config import settings
 from src.core import dependencies
 from src.utils.loguru_config import AppLogger
 
-
 logger = AppLogger().get_logger()
 
 
@@ -36,27 +25,23 @@ def db_session():
     # Создаём in-memory SQLite, чтобы тесты не трогали прод БД
     engine = create_engine(
         settings.TEST_DB_URL,
-        echo=True,  # включим logging, чтобы видеть SQL (для отладки)
+        echo=False,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
     BaseOrm.metadata.create_all(bind=engine)
     sync_session = sessionmaker(
-        engine,
-        class_=Session,
-        expire_on_commit=False,
-        autoflush=True
+        engine, class_=Session, expire_on_commit=False, autoflush=True
     )
     with sync_session() as session:
-        yield session  # возвращаем сессию как фикстуру
+        yield session
 
-    # На всякий случай уничтожаем engine
     engine.dispose()
 
 
 @pytest.fixture(scope="session")
 def client(db_session):
-        # Синхронный override
+    # Синхронный override
     def override_get_db_session():
         try:
             yield db_session
@@ -72,10 +57,13 @@ def client(db_session):
     async def override_get_async_session():
         yield AsyncSessionWrapper(db_session)
 
-    main_app.dependency_overrides[database.get_db_helper().get_session] = override_get_async_session
+    main_app.dependency_overrides[database.get_db_helper().get_session] = (
+        override_get_async_session
+    )
     yield TestClient(main_app)
 
     main_app.dependency_overrides.clear()
+
 
 @pytest.fixture(scope="module")
 def token(client, login_url, user_json, project_user, verify_url, verify_token):
@@ -95,6 +83,7 @@ def token(client, login_url, user_json, project_user, verify_url, verify_token):
     )
     logger.debug(f"Token: {resp.json()}")
     return resp.json()["access_token"]
+
 
 @pytest.fixture(scope="module")
 def verify_token(client, request_verify_token_url, project_user):
@@ -120,6 +109,7 @@ def verify_token(client, request_verify_token_url, project_user):
 
     UserManager.on_after_request_verify = original
 
+
 @pytest.fixture(scope="module")
 def project_user(client, register_url, user_json):
     """Создаёт пользователя и возвращает его ID"""
@@ -130,17 +120,21 @@ def project_user(client, register_url, user_json):
     resp: requests.Response = client.post(register_url, json=json)
     return resp.json()
 
+
 @pytest.fixture(scope="module")
 def request_verify_token_url(server_url):
     return "".join([f"{server_url}", settings.api.auth_url, "/request-verify-token"])
+
 
 @pytest.fixture(scope="module")
 def verify_url(server_url):
     return "".join([f"{server_url}", settings.api.auth_url, "/verify"])
 
+
 @pytest.fixture(scope="module")
 def server_url():
     return f"http://{settings.run.SERVER_IP}:{settings.run.SERVER_PORT}/"
+
 
 @pytest.fixture(scope="module")
 def register_url(server_url):
@@ -164,6 +158,7 @@ def user_json():
         "username": "user",
         "fullname": "user",
     }
+
 
 @pytest.fixture(scope="module")
 def excluded_list() -> list:
