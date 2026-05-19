@@ -64,6 +64,13 @@ class ProjectOrm(
 
     # проверки на длину
     __table_args__ = (
+<<<<<<< HEAD
+=======
+        CheckConstraint(
+            func.length("name") <= 100,
+            name="project_name_max_length",
+        ),
+>>>>>>> 47a071372bf2ebcb9b85167b02bb8762fda9fbf3
         CheckConstraint(
             func.length("name") <= 100,
             name="project_name_max_length",
