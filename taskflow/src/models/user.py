@@ -17,7 +17,9 @@ from src.models import BaseOrm
 if TYPE_CHECKING:
     from .access_token import AccessTokenOrm
     from .project import ProjectOrm
+    from .user_project import UserProjectOrm
     from src.core.async_session_wrapper import AsyncSessionWrapper
+
 
 class SQLAlchemyUserDatabase(SQLAlchemyUserDatabaseGeneric):
 
@@ -84,11 +86,10 @@ class UserOrm(
         back_populates="creator",
     )
     project: Mapped[list["ProjectOrm"]] = relationship(back_populates="creator")
-    projects: Mapped[list["ProjectOrm"]] = relationship(
-        "ProjectOrm",
-        secondary="tf_user_project",  # Alembic создаст tf_user_project
-        back_populates="users",
-        lazy="selectin",
+    user_projects: Mapped[list["UserProjectOrm"]] = relationship(
+        "UserProjectOrm",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )
 
     @declared_attr

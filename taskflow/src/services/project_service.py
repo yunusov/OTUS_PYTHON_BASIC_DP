@@ -1,7 +1,5 @@
-from sqlalchemy import select
-
 from src.core.dependencies import ProjectRepo
-from src.models import ProjectOrm, user_project
+from src.models import ProjectOrm, UserProjectOrm, UserOrm
 from src.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate
 from src.utils.loguru_config import AppLogger
 
@@ -9,13 +7,19 @@ logger = AppLogger().get_logger()
 
 
 class ProjectService:
+
     def create(
         self,
         project_data: ProjectCreate,
         repository: ProjectRepo,
     ) -> ProjectRead:
-        """Создание проекта"""
         project_orm = ProjectOrm(**project_data.model_dump())
+        creator = repository.session.get(UserOrm, project_data.creator_id)
+
+        if creator is None:
+            raise ValueError("Пользователь-создатель не найден")
+
+        project_orm.user_projects.append(UserProjectOrm(user=creator))
         repository.create(project_orm)
         repository.save()
         return ProjectRead.model_validate(project_orm)
@@ -26,35 +30,28 @@ class ProjectService:
         project_data: ProjectUpdate,
         repository: ProjectRepo,
     ) -> ProjectRead:
-        """Изменение данных проекта"""
         project_orm = repository.get_by_id(project_id)
         if project_orm is None:
             raise ValueError("Проект с таким ID не существует!")
 
-        project_orm.name = project_data.name if project_data.name else project_orm.name
-        project_orm.description = (
-            project_data.description
-            if project_data.description
-            else project_orm.description
-        )
-        project_orm.project_type = (
-            project_data.project_type
-            if project_data.project_type
-            else project_orm.project_type
-        )
-        project_orm.creator_id = (
-            project_data.creator_id
-            if project_data.creator_id
-            else project_orm.creator_id
-        )
-        stmt = select(user_project).where(user_project.c.project_id == project_id)
-        assoc = repository.session.execute(stmt).scalar_one_or_none()
+        if project_data.name is not None:
+            project_orm.name = project_data.name
+        if project_data.description is not None:
+            project_orm.description = project_data.description
+        if project_data.project_type is not None:
+            project_orm.project_type = project_data.project_type
+        if project_data.creator_id is not None:
+            project_orm.creator_id = project_data.creator_id
 
-        if assoc:
-            assoc.user_id = project_data.creator_id
-            # id не меняется, потому что это update
+            creator = repository.session.get(UserOrm, project_data.creator_id)
+            if creator is None:
+                raise ValueError("Пользователь-создатель не найден")
 
-        # 5. Сохраняем всё
+            if project_orm.user_projects:
+                project_orm.user_projects[0].user = creator
+            else:
+                project_orm.user_projects.append(UserProjectOrm(user=creator))
+
         repository.save()
         return ProjectRead.model_validate(project_orm)
 
@@ -63,7 +60,6 @@ class ProjectService:
         project_id: int,
         repository: ProjectRepo,
     ) -> bool:
-        """Удаление проекта"""
         project_orm = repository.get_by_id(project_id)
         if project_orm is None:
             return False
