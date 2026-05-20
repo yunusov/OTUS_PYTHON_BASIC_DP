@@ -77,17 +77,17 @@ class ProjectService:
             project_orm.description = project_data.description
         if project_data.project_type is not None:
             project_orm.project_type = project_data.project_type
-        if project_data.creator_id is not None:
-            project_orm.creator_id = project_data.creator_id
 
-            creator = repository.session.get(UserOrm, project_data.creator_id)
-            if creator is None:
+        if project_data.creator_id is not None:
+            new_creator = repository.session.get(UserOrm, project_data.creator_id)
+            if new_creator is None:
                 raise ValueError("Пользователь-создатель не найден")
 
-            if project_orm.user_projects:
-                project_orm.user_projects[0].user = creator
-            else:
-                project_orm.user_projects.append(UserProjectOrm(user=creator))
+            project_orm.creator_id = project_data.creator_id
+
+            existing_user_ids = {link.user_id for link in project_orm.user_projects}
+            if project_data.creator_id not in existing_user_ids:
+                project_orm.user_projects.append(UserProjectOrm(user=new_creator))
 
         repository.save()
         return ProjectRead.model_validate(project_orm)
