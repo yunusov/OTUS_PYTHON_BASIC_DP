@@ -17,8 +17,10 @@ from .mixins import (
     DateCreateUpdateMixin,
     IntIdPkMixin,
 )
-from src.schemas import TaskPriority
-from src.schemas.task import TaskStatus, TaskPriority
+from src.schemas import (
+    TaskPriority,
+    TaskStatus,
+)
 
 if TYPE_CHECKING:
     from .project import ProjectOrm
