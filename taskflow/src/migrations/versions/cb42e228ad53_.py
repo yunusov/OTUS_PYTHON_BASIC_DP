@@ -182,4 +182,5 @@ def downgrade() -> None:
     )
     op.drop_index(op.f("ix_tf_projects_creator_id"), table_name="tf_projects")
     op.drop_table("tf_projects")
+    op.drop_table("tf_users")
     # ### end Alembic commands ###

@@ -17,7 +17,6 @@ from src.core.config import settings
 from src.core import dependencies
 from src.utils.loguru_config import AppLogger
 
-
 logger = AppLogger().get_logger()
 
 
@@ -35,17 +34,17 @@ def db_session():
         engine,
         class_=Session,
         expire_on_commit=False,
-        autoflush=True
+        autoflush=True,
     )
     with sync_session() as session:
-        yield session  
+        yield session
 
     engine.dispose()
 
 
 @pytest.fixture(scope="session")
 def client(db_session):
-        # Синхронный override
+    # Синхронный override
     def override_get_db_session():
         try:
             yield db_session
@@ -56,15 +55,19 @@ def client(db_session):
 
     main_app.dependency_overrides.clear()
     main_app.dependency_overrides[dependencies.get_db_session] = override_get_db_session
-    
+
     # Async override для fastapi_users
     async def override_get_async_session():
         yield AsyncSessionWrapper(db_session)
-    
-    main_app.dependency_overrides[database.get_db_helper().get_session] = override_get_async_session
+
+    main_app.dependency_overrides[database.get_db_helper().get_session] = (
+        override_get_async_session
+    )
+
     yield TestClient(main_app)
 
     main_app.dependency_overrides.clear()
+
 
 @pytest.fixture(scope="module")
 def token(client, login_url, user_json, project_user, verify_url, verify_token):
@@ -84,6 +87,7 @@ def token(client, login_url, user_json, project_user, verify_url, verify_token):
     )
     logger.debug(f"Token: {resp.json()}")
     return resp.json()["access_token"]
+
 
 @pytest.fixture(scope="module")
 def verify_token(client, request_verify_token_url, project_user):
@@ -109,6 +113,7 @@ def verify_token(client, request_verify_token_url, project_user):
 
     UserManager.on_after_request_verify = original
 
+
 @pytest.fixture(scope="module")
 def project_user(client, register_url, user_json):
     """Создаёт пользователя и возвращает его ID"""
@@ -119,21 +124,26 @@ def project_user(client, register_url, user_json):
     resp: requests.Response = client.post(register_url, json=json)
     return resp.json()
 
+
 @pytest.fixture(scope="module")
 def request_verify_token_url(server_url):
     return "".join([f"{server_url}", settings.api.auth_url, "/request-verify-token"])
+
 
 @pytest.fixture(scope="module")
 def verify_url(server_url):
     return "".join([f"{server_url}", settings.api.auth_url, "/verify"])
 
+
 @pytest.fixture(scope="module")
 def server_url():
     return f"http://{settings.run.SERVER_IP}:{settings.run.SERVER_PORT}/"
 
+
 @pytest.fixture(scope="module")
 def register_url(server_url):
     return "".join([f"{server_url}", settings.api.register_url])
+
 
 @pytest.fixture(scope="module")
 def login_url(server_url):
@@ -152,6 +162,7 @@ def user_json():
         "username": "user",
         "fullname": "user",
     }
+
 
 @pytest.fixture(scope="module")
 def excluded_list() -> list:

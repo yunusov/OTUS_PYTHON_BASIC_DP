@@ -1,8 +1,8 @@
 from sqlalchemy import select
 
+from .base import BaseRepository
 from src.models import ProjectOrm
 from src.utils.loguru_config import AppLogger
-from .base import BaseRepository
 
 logger = AppLogger().get_logger()
 

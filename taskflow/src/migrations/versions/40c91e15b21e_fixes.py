@@ -45,6 +45,7 @@ def upgrade() -> None:
         "tf_tasks",
         ["creator_id"],
         unique=False,
+        if_not_exists=True,
     )
     # ### end Alembic commands ###
 

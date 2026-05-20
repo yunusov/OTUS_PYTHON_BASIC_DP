@@ -1,8 +1,11 @@
 import datetime
 from enum import StrEnum, auto
-from typing import Optional
-
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+)
 
 
 class ProjectType(StrEnum):
@@ -43,12 +46,13 @@ class ProjectBase(BaseModel):
         }
         return mapping.get(value.upper(), value.lower())
 
+
 class ProjectRead(ProjectBase):
     id: int
     created_at: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(datetime.UTC)
     )
-    
+
     def __repr__(self) -> str:
         return "".join(
             [
@@ -61,8 +65,10 @@ class ProjectRead(ProjectBase):
             ]
         )
 
+
 class ProjectCreate(ProjectBase):
     pass
+
 
 class ProjectUpdate(ProjectBase):
     pass

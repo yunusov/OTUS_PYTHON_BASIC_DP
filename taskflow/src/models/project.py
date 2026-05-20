@@ -4,10 +4,13 @@ from sqlalchemy import (
     ForeignKey,
     func,
     Text,
+    Enum as SQLEnum,
 )
-from sqlalchemy import Enum as SQLEnum
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from sqlalchemy.orm import (
+    Mapped,
+    mapped_column,
+    relationship,
+)
 from .mixins import (
     DateCreateUpdateMixin,
     IntIdPkMixin,
@@ -16,6 +19,7 @@ from .mixins import (
 if TYPE_CHECKING:
     from .task import TaskOrm
     from .user import UserOrm
+    from .user_project import UserProjectOrm
 
 from src.models import (
     BaseOrm,
@@ -52,11 +56,10 @@ class ProjectOrm(
     # связи
     creator: Mapped["UserOrm"] = relationship("UserOrm", back_populates="project")
     tasks: Mapped[list["TaskOrm"]] = relationship(back_populates="project")
-    users: Mapped[list["UserOrm"]] = relationship(
-        "UserOrm",
-        secondary="tf_user_project",
-        back_populates="projects",
-        lazy="selectin",
+    user_projects: Mapped[list["UserProjectOrm"]] = relationship(
+        "UserProjectOrm",
+        back_populates="project",
+        cascade="all, delete-orphan",
     )
 
     # проверки на длину

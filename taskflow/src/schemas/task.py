@@ -1,13 +1,17 @@
 from datetime import datetime
-from enum import StrEnum,auto
+from enum import StrEnum, auto
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    field_validator,
+)
 
 
 class TaskStatus(StrEnum):
     """Статусы задач"""
     TODO = auto()
-    IN_PROGRESS =auto()
+    IN_PROGRESS = auto()
     DONE = auto()
 
 
@@ -30,7 +34,7 @@ class TaskBase(BaseModel):
     assignee_id: Optional[int] = None
     time_estimate: Optional[int] = None
     time_spent: Optional[int] = None
-    
+
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -54,7 +58,8 @@ class TaskBase(BaseModel):
         if v is not None and v < 0:
             raise ValueError("Время не может быть отрицательным")
         return v
-    
+
+
 class TaskRead(TaskBase):
     """Схема для создания задач в БД."""
     id: int
@@ -76,6 +81,7 @@ class TaskRead(TaskBase):
 class TaskCreate(TaskBase):
     """Схема для создания задач в БД."""
     pass
+
 
 class TaskUpdate(TaskBase):
     """Схема для создания задач в БД."""
