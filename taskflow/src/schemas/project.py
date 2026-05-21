@@ -1,4 +1,3 @@
-
 import datetime
 from enum import StrEnum, auto
 from pydantic import (
@@ -44,7 +43,6 @@ class ProjectBase(BaseModel):
             "SOFTWARE": "software",
             "BUSINESS": "business",
             "SERVICE_DESK": "service_desk",
-            "SOFTWARE": "software",
         }
         return mapping.get(value.upper(), value.lower())
 

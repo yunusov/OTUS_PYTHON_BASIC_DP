@@ -17,7 +17,7 @@ from .task import (
     TaskStatus,
     TaskPriority,
 )
-from .project import  Project,ProjectInDB,ProjectType
+
 __all__ = [
     "UserCreate",
     "UserUpdate",
