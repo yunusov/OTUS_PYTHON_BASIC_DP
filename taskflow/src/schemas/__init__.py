@@ -8,6 +8,7 @@ from .project import (
     ProjectRead,
     ProjectUpdate,
     ProjectType,
+    ProjectMembersAdd
 )
 from .task import (
     TaskCreate,
@@ -30,4 +31,5 @@ __all__ = [
     "TaskUpdate",
     "TaskStatus",
     "TaskPriority",
+    "ProjectMembersAdd",
 ]

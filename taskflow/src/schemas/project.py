@@ -72,3 +72,6 @@ class ProjectCreate(ProjectBase):
 
 class ProjectUpdate(ProjectBase):
     pass
+
+class ProjectMembersAdd(BaseModel):
+    user_ids: list[int]

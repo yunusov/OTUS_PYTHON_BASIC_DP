@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.core.auth.fastapi_users import fastapi_users
-from src.core.dependencies import ProjectRepo
+from src.core.dependencies import ProjectRepo,get_project_repository
 from src.core.config import settings
 from src.models import UserOrm
 from src.schemas import (
     ProjectCreate,
     ProjectRead,
     ProjectUpdate,
+    ProjectMembersAdd,
 )
 from src.services import ProjectService
 from src.utils.loguru_config import AppLogger
@@ -65,3 +66,11 @@ def get_project(
     if not project:
         raise HTTPException(status_code=404, detail="Проект не найден")
     return ProjectRead.model_validate(project)
+
+@router.post("/{project_id}/members", response_model=ProjectRead)
+def add_members(
+    project_id: int,
+    data: ProjectMembersAdd,
+    repository: ProjectRepo,
+):
+    return ProjectService().add_members(project_id, data, repository)
