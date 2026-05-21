@@ -60,3 +60,26 @@ def test_delete_project(projects_api_url, client, project, token):
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 200
+
+def test_add_members(
+    projects_api_url,
+    client,
+    project,
+    token,
+    project_user,
+):
+    project_id = project["id"]
+
+    add_members_json = {
+        "user_ids": [project_user["id"]],
+    }
+    logger.info(f"{project_id=}, {add_members_json=}")
+    resp = client.post(
+        projects_api_url % f"{project_id}/members",
+        json=add_members_json,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    logger.info(resp.json())
+    assert resp.status_code == 200
+    assert resp.json()["id"] == project_id
