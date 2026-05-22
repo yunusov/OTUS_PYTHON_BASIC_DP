@@ -89,6 +89,9 @@ class TaskOrm(
         lazy="selectin",
     )
 
+    def __str__(self) -> str:
+        return self.name
+
     __table_args__ = (
         CheckConstraint(
             "length(name) <= 255",
