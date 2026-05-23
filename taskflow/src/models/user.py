@@ -17,6 +17,7 @@ from src.models import BaseOrm
 if TYPE_CHECKING:
     from .access_token import AccessTokenOrm
     from .project import ProjectOrm
+    from .task import TaskOrm
     from .user_project import UserProjectOrm
     from src.core.async_session_wrapper import AsyncSessionWrapper
 
@@ -62,20 +63,8 @@ class UserOrm(
     def get_db(cls, session: "AsyncSessionWrapper"):
         return SQLAlchemyUserDatabase(session, cls)  # type: ignore[arg-type]
 
-    def __repr__(self) -> str:
-        return "".join(
-            [
-                f"UserOrm(id={self.id},",
-                f"username={self.username},",
-                f"fullname={self.fullname},",
-                f"email={self.email},",
-                f"is_active={self.is_active},",
-                f"is_superuser={self.is_superuser},",
-                f"is_verified={self.is_verified},",
-                f"created_at={self.created_at}",
-                f"update_at={self.updated_at})",
-            ]
-        )
+    def __str__(self) -> str:
+        return self.email
 
     access_tokens: Mapped[list["AccessTokenOrm"]] = relationship(
         back_populates="user",

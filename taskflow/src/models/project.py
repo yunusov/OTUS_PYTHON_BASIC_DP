@@ -15,7 +15,6 @@ from .mixins import (
     DateCreateUpdateMixin,
     IntIdPkMixin,
 )
-
 if TYPE_CHECKING:
     from .task import TaskOrm
     from .user import UserOrm
@@ -73,15 +72,6 @@ class ProjectOrm(
             name="project_description_max_length",
         ),
     )
-
-    def __repr__(self) -> str:
-        return "".join(
-            [
-                f"ProjectOrm(id={self.id},",
-                f"name={self.name},",
-                f"description={self.description},",
-                f"project_type={self.project_type},",
-                f"creator_id={self.creator_id},",
-                f"created_at={self.created_at})",
-            ]
-        )
+    
+    def __str__(self) -> str:
+        return self.name
