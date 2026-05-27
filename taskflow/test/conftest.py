@@ -102,6 +102,7 @@ def verify_token(client, request_verify_token_url, project_user):
     UserManager.on_after_request_verify = capture_token
 
     # request verify token
+    logger.info(f"request_verify_token_url: {request_verify_token_url}")
     requests.Response = client.post(
         request_verify_token_url,
         json={
@@ -119,6 +120,7 @@ def project_user(client, register_url, user_json):
     """Создаёт пользователя и возвращает его ID"""
     json = user_json.copy()
     json["username"] = "".join([json["username"], str(random.randint(1, 1000))])
+    json["fullname"] = json["username"]
     json["email"] = json["email"].replace("user", "u" + str(random.randint(1, 1000)))
     logger.info(json)
     resp: requests.Response = client.post(register_url, json=json)

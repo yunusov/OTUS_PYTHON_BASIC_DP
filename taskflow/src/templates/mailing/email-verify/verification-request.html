@@ -1,0 +1,21 @@
+{% extends 'mailing/base.html' %}
+
+{% block title %}
+    Verify your email address
+{% endblock %}
+
+{% block content %}
+    <p>
+        Dear, {{ user.fullname }}!
+    </p>
+    <p>
+        To verify your email address, please click the link below:
+        <br><br>
+        <a href="{{ verification_link }}">Confirm email</a>
+        <br><br>
+        And use this token to verify your email address: 
+        <br><br>
+        {{ token }}
+        <code>{{ verification_token }}</code>
+    </p>
+{% endblock %}
