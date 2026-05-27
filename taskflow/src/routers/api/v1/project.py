@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.core.auth.fastapi_users import fastapi_users
-from src.core.dependencies import ProjectRepo,get_project_repository
+from src.core.dependencies import ProjectRepo, get_project_repository
 from src.core.config import settings
 from src.models import UserOrm
 from src.schemas import (
@@ -67,10 +67,12 @@ def get_project(
         raise HTTPException(status_code=404, detail="Проект не найден")
     return ProjectRead.model_validate(project)
 
+
 @router.post("/{project_id}/members", response_model=ProjectRead)
 def add_members(
     project_id: int,
     data: ProjectMembersAdd,
     repository: ProjectRepo,
+    user: UserOrm = Depends(current_active_user),
 ):
     return ProjectService().add_members(project_id, data, repository)

@@ -1,0 +1,14 @@
+<nav class="navbar navbar-light bg-light border-bottom">
+    <div class="container">
+        <a class="navbar-brand" href="/">Menu</a>
+
+        <div class="d-flex align-items-center gap-2">
+            {% if user %}
+                <span class="text-muted small">{{ user.email }}</span>
+                <a class="btn btn-outline-secondary btn-sm" href="/api/v1/auth/logout">Logout</a>
+            {% else %}
+                <a class="btn btn-dark btn-sm" href="/auth/login">Login</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
