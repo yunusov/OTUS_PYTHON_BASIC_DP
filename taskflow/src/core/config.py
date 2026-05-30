@@ -3,6 +3,7 @@ from pathlib import Path
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = Path(__file__).parent / ".env"
 
 
@@ -24,6 +25,8 @@ class ApiV1Prefix(BaseModel):
     service: str = "/service"
     tasks: str = "/tasks"
     users: str = "/users"
+    logout: str = "/logout"
+    login: str = "/login"
 
 
 class ApiPrefix(BaseModel):
@@ -91,6 +94,13 @@ class DBConfig(BaseConfig):
     pool_size: int = 5
     max_overflow: int = 10
 
+class EmailConfig(BaseConfig):
+    email_host: str = "127.0.0.1"
+    email_port: str = "1025"
+    email_login: str = "admin@taskflow.com" 
+    email_token: str = ""
+    smtp_auth: bool = False
+
 
 class AccessToken(BaseConfig):
     lifetime_seconds: int = 3600
@@ -101,6 +111,7 @@ class AccessToken(BaseConfig):
 class Settings(BaseConfig):       
     api: ApiPrefix = ApiPrefix()
     db: DBConfig = DBConfig()
+    email: EmailConfig = EmailConfig()
     run: RunConfig = RunConfig()
     access_token: AccessToken = AccessToken()
 

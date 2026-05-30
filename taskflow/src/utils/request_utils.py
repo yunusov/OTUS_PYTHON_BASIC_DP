@@ -8,35 +8,60 @@ logger = AppLogger().get_logger()
 
 
 @logger.catch(reraise=True)
-async def async_request(method: str, url: str, params=None) -> str:
+def async_request(
+    method: str,
+    url: str,
+    params=None,
+    data=None,
+    headers=None,
+    request=None,
+) -> dict:
     """Вызов запроса определённого типа"""
-    logger.info(f"{method = }; {url = }; {params = };")
-    async_url = url
+    logger.info(f"{method = }; {url = }; {params = }; {headers = };")
+    full_url = url
     if "http" not in url:
-        async_url = settings.SERVER_URL + url
+        full_url = settings.SERVER_URL + url
 
-    async with httpx.AsyncClient() as client:
-        result = await send_request(method, params, async_url, client)
-        if result.is_error:
-            return make_error_msg(result)
-        return result.json()
+    final_headers = {}
+    if headers:
+        final_headers.update(headers)
 
-async def send_request(method, params, async_url, client):
+    # Если передан request — извлекаем токен из сессии
+    if request and hasattr(request, "session"):
+        access_token = request.session.get("access_token")
+        if access_token:
+            final_headers["Authorization"] = f"Bearer {access_token}"
+
+    with httpx.Client() as client:
+        response = client.request(
+            method=method,
+            url=full_url,
+            json=params,
+            data=data,
+            headers=final_headers,
+        )
+    logger.info(f"{response.status_code = }; {response.text = };")
+    return response.json() if response.status_code != 204 else {}
+
+
+def send_request(method, params, async_url, client, headers, data):
     """Отправляем запрос на клиент"""
-    if method.upper() == "GET":
-        result = await client.get(async_url, params=params)
-    elif method.upper() == "DELETE":
-        result = await client.delete(async_url, params=params)
-    elif method.upper() == "PUT":
-        result = await client.put(async_url, params=params)
-    elif method.upper() == "POST":
-        result = await client.post(async_url, params=params)
+    logger.info(f"{async_url = };")
+    if method == "GET":
+        result = client.get(async_url, data=data, params=params, headers=headers)
+    elif method == "DELETE":
+        result = client.delete(async_url, data=data, params=params, headers=headers)
+    elif method == "PUT":
+        result = client.put(async_url, data=data, params=params, headers=headers)
+    elif method == "POST":
+        result = client.post(async_url, data=data, params=params, headers=headers)
     else:
         raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Неопознанный метод запроса '{method}'",
-            )   
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Неопознанный метод запроса '{method}'",
+        )
     return result
+
 
 def make_error_msg(result) -> dict:
     """Создать сообщение об ошибке"""

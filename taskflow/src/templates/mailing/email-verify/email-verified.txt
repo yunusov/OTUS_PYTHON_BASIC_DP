@@ -1,0 +1,7 @@
+Dear {{ user.username }},\n
+
+You email has been confirmed.\n
+
+------
+Best regards,\n
+Taskflow Team\n

@@ -8,9 +8,9 @@ from fastapi_users import (
 from fastapi_users.db import BaseUserDatabase
 
 from src.core.config import settings
+from src.mailing.send_verification_email import send_verification_email
+from src.mailing.send_confirmed_email import send_confirmed_email
 from src.models import UserOrm
-# from mailing.send_email_confirmed import send_email_confirmed
-# from mailing.send_verification_email import send_verification_email
 # from utils.webhooks.user import send_new_user_notification
 from src.utils.loguru_config import AppLogger
 
@@ -77,14 +77,15 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
             user.id,
             token,
         )
-        # verification_link = request.url_for("verify_email").replace_query_params(
-        #     token=token
-        # )
-        # self.background_tasks.add_task(
-        #     send_verification_email,
-        #     user=user,
-        #     verification_link=str(verification_link),
-        # )
+        verification_link = request.url_for("verify_email").replace_query_params(
+            token=token
+        )
+        self.background_tasks.add_task(
+            send_verification_email,
+            user=user,
+            verification_link=str(verification_link),
+            verification_token=token,
+        )
 
     async def on_after_verify(
         self,
@@ -95,8 +96,7 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
             "User {} has been verified",
             user.id,
         )
-
-        # self.background_tasks.add_task(
-        #     send_email_confirmed,
-        #     user=user,
-        # )
+        self.background_tasks.add_task(
+            send_confirmed_email,
+            user=user,
+        )

@@ -1,0 +1,13 @@
+Dear {{ user.fullname }},\n
+
+Please verify your email by clicking on the link below:\n
+{{ verification_link }}\n
+
+Use the following token to verify your email:\n
+{{ verification_token }}\n
+
+If you did not request this email, you can safely ignore it.\n
+
+------
+Best regards,\n
+Taskflow Team\n
