@@ -20,12 +20,12 @@ def index(request: Request):
     access_token = request.session.setdefault("access_token", None)
     if access_token:
         user = UserService.get_me(request, access_token)
-        context = {
-            "request": request,
-            "user": user,
-        }
         if user:
             html_page = "index.html" if user.is_verified else "mailing/home.html"
+            context = {
+                "request": request,
+                "user": user,
+            }
             return templates.TemplateResponse(
                 request,
                 html_page,
@@ -35,9 +35,7 @@ def index(request: Request):
 
 
 @router.get("/login/", response_class=HTMLResponse, name="login")
-def login_get(
-    request: Request,
-):
+def login_get(request: Request):
     access_token = request.session.setdefault("access_token", None)
     if access_token:
         return RedirectResponse(url=request.url_for("index"), status_code=303)

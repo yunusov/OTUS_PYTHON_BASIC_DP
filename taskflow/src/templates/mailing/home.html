@@ -1,25 +1,105 @@
 {% extends 'base.html' %}
 {% block title %}
-  Home
+  Личный кабинет
 {% endblock %}
 
 {% block content %}
-  <h1>User info</h1>
+  <h2>Личный кабинет</h2>
 
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  <div>
+    <button
+      id="edit-button"
+      type="button"
+      class="btn btn-secondary"
+    >Редактировать
+    </button>
+    <button
+      id="save-button"
+      type="submit"
+      form="user-form"
+      class="btn btn-warning d-none"
+    >Сохранить
+    </button>
+  </div>
   <ul class="list-group my-3">
-    <li class="list-group-item">
-      <strong>E-mail:</strong>
-      <code>{{ user.email }}</code>
-    </li>
-    <li class="list-group-item">
-      <strong>Verified:</strong>
-      {% if user.is_verified %}
-        <span class="badge bg-success">Yes</span>
-      {% else %}
-        <span class="badge bg-warning">No</span>
-      {% endif %}
-    </li>
+    <form action="/user/me" method="post" id="user-form">
+      <li class="list-group-item">
+      <div class="mb-3 row">
+        <label class="col-sm-4 col-form-label"><strong>E-mail: </strong></label>
+        <div class="col-sm-8">
+          <input type="email" id="email-input" name="email" value="{{ user.email }}" readonly="true">
+        </div>
+      </div>
+      </li>
+      <li class="list-group-item">
+      <div class="mb-3 row">
+        <label class="col-sm-4 col-form-label"><strong>Полное имя: </strong></label>
+        <div class="col-sm-8">
+          <input type="text" id="fullname-input" name="fullname" value="{{ user.fullname }}" readonly="true">
+        </div>
+      </div>
+      </li>
+      <li class="list-group-item">
+      <div class="mb-3 row">
+        <label class="col-sm-4 col-form-label"><strong>Имя пользователя: </strong></label>
+        <div class="col-sm-8">
+          <input type="text" id="username-input" name="username" value="{{ user.username }}" readonly="true">
+        </div>
+      </div>
+      </li>
+      <li class="list-group-item">
+      <div class="mb-3 row">
+        <label class="col-sm-4 col-form-label"><strong>Пароль: </strong></label>
+        <div class="col-sm-8">
+          <input type="password" id="password-input" name="password" value="{{ user.password }}" readonly="true">
+        </div>
+      </div>
+      </li>
+      <li class="list-group-item">
+        <strong>Пользователь создан: </strong>
+        <code>{{ user.created_at }}</code>
+      </li>
+      <li class="list-group-item">
+        <strong>Верифицирован: </strong>
+        {% if user.is_verified %}
+          <span class="badge bg-success">Да</span>
+        {% else %}
+          <span class="badge bg-warning">Нет</span>
+        {% endif %}
+      </li>
+    </form>
   </ul>
+
+  <script>
+      const editButton = document.getElementById("edit-button");
+      const saveButton = document.getElementById("save-button");
+      const emailInput = document.getElementById("email-input");
+      const fullnameInput = document.getElementById("fullname-input");
+      const usernameInput = document.getElementById("username-input");
+      const passwordInput = document.getElementById("password-input");
+      
+      editButton.addEventListener("click", async () => {
+        editButton.classList.add("d-none");
+        saveButton.classList.remove("d-none");
+        emailInput.removeAttribute("readonly");
+        fullnameInput.removeAttribute("readonly");
+        usernameInput.removeAttribute("readonly");
+        passwordInput.removeAttribute("readonly");
+      })
+
+      saveButton.addEventListener("click", async () => {
+        saveButton.classList.add("d-none");
+        editButton.classList.remove("d-none");
+        emailInput.setAttribute("readonly", "true");
+        fullnameInput.setAttribute("readonly", "true");
+        usernameInput.setAttribute("readonly", "true");
+        passwordInput.setAttribute("readonly", "true");
+      })
+  </script>
 
   {% if not user.is_verified %}
     <div>
@@ -27,7 +107,7 @@
         id="verify-button"
         type="button"
         class="btn btn-primary"
-      >Verify e-mail
+      >Верифицировать по e-mail
       </button>
     </div>
 
@@ -63,9 +143,16 @@
       const requestVerificationURL = "{{ url_for('verify:request-token') }}";
 
       const verifyButton = document.getElementById("verify-button");
+      const editButton = document.getElementById("edit-button");
+      const saveButton = document.getElementById("save-button");
       const verificationEmailSent = document.getElementById("verification-email-sent");
       const verificationRequestError = document.getElementById("verification-request-error");
       const loadingIndicator = document.getElementById("loading-indicator");
+
+      editButton.addEventListener("click", async () => {
+        editButton.classList.add("d-none");
+        saveButton.classList.remove("d-none");
+      })
 
       verifyButton.addEventListener("click", async () => {
         verifyButton.classList.add("d-none");
