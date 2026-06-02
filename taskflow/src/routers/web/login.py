@@ -1,3 +1,4 @@
+from deep_translator import GoogleTranslator
 from typing import Annotated
 
 from fastapi import APIRouter, Form, Request, Depends
@@ -13,6 +14,7 @@ from src.utils.request_utils import async_request
 
 logger = AppLogger().get_logger()
 router = APIRouter()
+translator = GoogleTranslator(source='en', target='ru')
 
 
 @router.get("/", response_class=HTMLResponse, name="index")
@@ -22,9 +24,26 @@ def index(request: Request):
         user = UserService.get_me(request, access_token)
         if user:
             html_page = "index.html" if user.is_verified else "mailing/home.html"
+            response = {}
+            try:
+                response = async_request(
+                    "GET",
+                    "https://api.adviceslip.com/advice",
+                    request=request,
+                )
+            except Exception as e:
+                logger.error(f"index failed: {e}")
+
+            eng_advice = response.setdefault("slip", {}).setdefault("advice", "")
+            logger.info(f"index {eng_advice=}")
+            random_tip = ""
+            if eng_advice:
+                random_tip = translator.translate(eng_advice, src='en', dest='ru')
+
             context = {
                 "request": request,
                 "user": user,
+                "random_tip": random_tip if random_tip else "Начинай день с самых важных задач, двигайся только вперёд!",
             }
             return templates.TemplateResponse(
                 request,
