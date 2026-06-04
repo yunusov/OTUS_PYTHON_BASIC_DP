@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 from alembic import op
 import sqlalchemy as sa
+import fastapi_users_db_sqlalchemy.generics
 from sqlalchemy.dialects import postgresql
 
 revision: str = "d36296c4b435"
@@ -24,7 +25,7 @@ def upgrade() -> None:
         sa.Column("token", sa.String(length=43), nullable=False),
         sa.Column(
             "created_at",
-            sa.DateTime(timezone=True),
+            fastapi_users_db_sqlalchemy.generics.TIMESTAMPAware(timezone=True),
             nullable=False,
         ),
         sa.ForeignKeyConstraint(["user_id"], ["tf_users.id"], ondelete="cascade"),
