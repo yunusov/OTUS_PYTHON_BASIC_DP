@@ -23,7 +23,7 @@ class BaseRepository:
         self.session.refresh(entityOrm)
 
     @abstractmethod
-    def get_by_id(self, user_id: int) -> BaseOrm | None:
+    def get_by_id(self, id: int) -> BaseOrm | None:
         '''Объект по ИД'''
 
     def delete(self, entityOrm: BaseOrm) -> None:

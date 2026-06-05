@@ -64,6 +64,8 @@ class TaskRead(TaskBase):
     """Схема для создания задач в БД."""
     id: int
     created_at: datetime
+    assignee: Optional[str] = None
+    creator: Optional[str] = None
 
     def __repr__(self) -> str:
         return "".join(

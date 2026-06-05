@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.core.auth.fastapi_users import fastapi_users
-from src.core.dependencies import ProjectRepo, get_project_repository
 from src.core.config import settings
+from src.core.dependencies import ProjectRepo
 from src.models import UserOrm
 from src.schemas import (
     ProjectCreate,

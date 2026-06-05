@@ -38,7 +38,9 @@ class ProjectBase(BaseModel):
         return value
 
     @field_validator("project_type", mode="before")
-    def normalize_project_type(cls, value: str) -> str:
+    def normalize_project_type(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
         mapping = {
             "BUSINESS"     : "business",
             "SERVICE_DESK" : "service_desk",
@@ -52,6 +54,7 @@ class ProjectRead(ProjectBase):
     created_at: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(datetime.UTC)
     )
+    owner: str | None = None
 
     def __repr__(self) -> str:
         return "".join(
@@ -61,6 +64,7 @@ class ProjectRead(ProjectBase):
                 f"description={self.description},",
                 f"project_type={self.project_type},",
                 f"creator_id={self.creator_id},",
+                f"owner={self.owner},",
                 f"created_at={self.created_at})",
             ]
         )

@@ -16,7 +16,12 @@ logger = AppLogger().get_logger()
 db_helper = get_db_helper()
 
 def get_db_session():
-    yield db_helper.session_factory()
+    session = db_helper.session_factory()
+    try:
+        yield session
+    finally:
+        logger.debug(f"Closing session {id(session)}")
+        session.close()
 
 DbSession = Annotated[Session, Depends(get_db_session)]
 

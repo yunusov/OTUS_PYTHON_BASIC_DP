@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}TaskFlow{% endblock %}
+
+{% block content %}
+<style>
+    .index-page .table {
+        background-color: rgba(255, 255, 255, 0.7) !important;
+    }
+    
+    .index-page .table th,
+    .index-page .table td {
+        background-color: transparent !important;
+        border-color: rgba(33, 37, 41, 0.1) !important;
+    }
+    
+    .index-page .table thead th {
+        background-color: rgba(248, 249, 250, 0.6) !important;
+        border-color: rgba(33, 37, 41, 0.2) !important;
+    }
+</style>
+
+<div class="container py-4 index-page">
+    <!-- Логотип + Название TaskFlow слева -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h1 class="taskflow-title mb-0">Проекты</h1>
+        <div>
+        <a href="/projects/create" class="btn btn-primary">
+            + Создать проект
+        </a>
+        </div>
+    </div>
+
+
+    <table class="table table-light">
+    <thead>
+        <tr>
+            <th scope="col">Название проекта</th>
+            <th scope="col">Владелец</th>
+            <th scope="col">Тип проекта</th>
+            <th scope="col">Дата создания</th>
+            <th scope="col">Действия</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for project in projects %}
+        <tr>
+            <th scope="row"><a href="/projects/{{ project.id }}/">{{ project.name }}</a></th>
+            <td><a href="/user/{{ project.creator_id }}/home/">{{ project.owner }}</a></td>
+            <td>{{ project.project_type }}</td>
+            <td>{{ project.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+            <td>
+                <a href="/projects/{{ project.id }}/edit" class="btn btn-sm btn-outline-primary">
+                    Редактировать
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+              
+
+    
+</div>
+{% endblock %}
