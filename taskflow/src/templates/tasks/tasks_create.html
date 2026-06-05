@@ -1,0 +1,108 @@
+<!-- templates/tasks/tasks_create.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+    <h1 class="h3 mb-4">{{ page_title }}</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form action="/tasks/create" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Название *</label>
+                    <input type="text" name="name" class="form-control" required minlength="3" maxlength="255">
+                    <div class="form-text">От 3 до 255 символов</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Проект *</label>
+                    <select name="project_id" class="form-select" id="project-select" required>
+                        <option value="">Выберите проект</option>
+                        {% for project in projects %}
+                            <option value="{{ project.id }}">{{ project.name }}</option>
+                        {% endfor %}
+                    </select>
+                    {% if not projects %}
+                    <div class="form-text text-warning">У вас пока нет проектов. <a href="/projects/create">Создайте проект</a> сначала.</div>
+                    {% endif %}
+                    <div class="invalid-feedback">Пожалуйста, выберите проект</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Описание</label>
+                    <textarea name="description" class="form-control" rows="3" maxlength="1000"></textarea>
+                    <div class="form-text">Не более 1000 символов</div>
+                </div>
+
+                <!-- dropdown с пользователями для assignee_id -->
+                <div class="mb-3">
+                    <label class="form-label">Назначить на</label>
+                    <select name="assignee_id" class="form-select" id="assignee-select">
+                        <option value="">Никому</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}">{{ user.fullname or user.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Срок выполнения</label>
+                    <input type="datetime-local" name="due_date" class="form-control">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Оценка времени (часы)</label>
+                    <input type="number" name="time_estimate" class="form-control" min="0" step="0.5" placeholder="Например: 4">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Статус *</label>
+                    <select name="status" class="form-select" required>
+                        <option value="todo" selected>Сделать (todo)</option>
+                        <option value="in_progress">В процессе (in_progress)</option>
+                        <option value="done">Готово (done)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Приоритет *</label>
+                    <select name="priority" class="form-select" required>
+                        <option value="low">Низкий (low)</option>
+                        <option value="medium" selected>Средний (medium)</option>
+                        <option value="high">Высокий (high)</option>
+                    </select>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Создать</button>
+                    <a href="/tasks" class="btn btn-outline-secondary">Назад</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const projectSelect = document.getElementById('project-select');
+
+projectSelect.addEventListener('change', function() {
+    this.classList.remove('is-invalid');
+});
+
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!projectSelect.value) {
+        e.preventDefault();
+        projectSelect.classList.add('is-invalid');
+        alert('Пожалуйста, выберите проект');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,80 @@
+<!-- templates/tasks/tasks_get.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="/" class="btn btn-outline-secondary">
+                <span class="me-1">⬅️</span> На главную
+            </a>
+            <h1 class="h3 mb-0">{{ page_title }}</h1>
+        </div>
+        <a href="/tasks/create" class="btn btn-primary">
+            <span class="me-1">➕</span> Создать задачу
+        </a>
+    </div>
+
+    {% if user %}
+    <div class="alert alert-info">
+        <p class="mb-2"> Ваши задачи, <strong>{{ user.fullname }}</strong>!</p>
+    </div>
+    {% endif %}
+
+    {% if tasks %}
+    <div class="row">
+        {% for task in tasks %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ task.name }}</h5>
+                    {% if task.description %}
+                    <p class="card-text text-muted">{{ task.description }}</p>
+                    {% endif %}
+                    <div class="small text-muted mt-3">
+                        <div class="mb-1">
+                            <strong>Проект:</strong> {{ task.project_id if task.project_id else "Без проекта" }}
+                        </div>
+                        <div class="mb-1">
+                            <strong>Статус:</strong>
+                            {% if task.status == 'todo' %}
+                                <span class="badge bg-secondary">Сделать</span>
+                            {% elif task.status == 'in_progress' %}
+                                <span class="badge bg-primary">В процессе</span>
+                            {% elif task.status == 'done' %}
+                                <span class="badge bg-success">Готово</span>
+                            {% endif %}
+                        </div>
+                        <div class="mb-1">
+                            <strong>Приоритет:</strong>
+                            {% if task.priority == 'low' %}
+                                <span class="badge bg-info">Низкий</span>
+                            {% elif task.priority == 'medium' %}
+                                <span class="badge bg-warning">Средний</span>
+                            {% elif task.priority == 'high' %}
+                                <span class="badge bg-danger">Высокий</span>
+                            {% endif %}
+                        </div>
+                        {% if task.due_date %}
+                        <div class="mb-1">
+                            <strong>Дедлайн:</strong> {{ task.due_date[:10] }} {{ task.due_date[11:16] if task.due_date|length > 10 else "" }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="/tasks/{{ task.id }}" class="btn btn-sm btn-outline-primary">Открыть</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        У вас пока нет задач. <a href="/tasks/create">Создайте первую задачу</a>!
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
