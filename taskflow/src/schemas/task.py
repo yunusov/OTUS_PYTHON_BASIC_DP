@@ -1,3 +1,4 @@
+# src/schemas/task.py
 from datetime import datetime
 from enum import StrEnum, auto
 from typing import Optional
@@ -6,10 +7,12 @@ from pydantic import (
     ConfigDict,
     field_validator,
 )
+from src.schemas.user import UserRead
 
 
 class TaskStatus(StrEnum):
     """Статусы задач"""
+
     TODO = auto()
     IN_PROGRESS = auto()
     DONE = auto()
@@ -17,6 +20,7 @@ class TaskStatus(StrEnum):
 
 class TaskPriority(StrEnum):
     """Приоритеты задач"""
+
     LOW = auto()
     MEDIUM = auto()
     HIGH = auto()
@@ -24,19 +28,43 @@ class TaskPriority(StrEnum):
 
 class TaskBase(BaseModel):
     """Схема для представления задачи в ответе"""
+
     name: str
     description: Optional[str] = None
     project_id: Optional[int] = None
     status: TaskStatus
     priority: TaskPriority
     due_date: Optional[datetime] = None
-    creator_id: int
+    creator_id: Optional[int] = None
     assignee_id: Optional[int] = None
     time_estimate: Optional[int] = None
     time_spent: Optional[int] = None
 
-
     model_config = ConfigDict(from_attributes=True)
+
+
+class TaskRead(TaskBase):
+    """Схема для чтения задачи с пользователем"""
+
+    id: int
+    created_at: datetime
+    creator_id: int
+    project_id: Optional[int] = None  # ← добавь явно
+    assignee_id: Optional[int] = None  # ← добавь явно
+    creator: Optional[UserRead] = None  # ← добавь
+    assignee: Optional[UserRead] = None  # ← добавь
+
+    def __repr__(self) -> str:
+        return "".join(
+            [
+                f"{self.__repr_name__()}(id={self.id},",
+                f"name={self.name},",
+                f"project_id={self.project_id},",
+                f"status={self.status},",
+                f"priority={self.priority},",
+                f"creator_id={self.creator_id})",
+            ]
+        )
 
     @field_validator("name")
     @classmethod
@@ -59,38 +87,22 @@ class TaskBase(BaseModel):
             raise ValueError("Время не может быть отрицательным")
         return v
 
-
-class TaskRead(TaskBase):
-    """Схема для создания задач в БД."""
-    id: int
-    created_at: datetime
-    assignee: Optional[str] = None
-    creator: Optional[str] = None
-
-    def __repr__(self) -> str:
-        return "".join(
-            [
-                f"{self.__repr_name__()}(id={self.id},",
-                f"name={self.name},",
-                f"project_id={self.project_id},",
-                f"status={self.status},",
-                f"priority={self.priority},",
-                f"creator_id={self.creator_id})",
-            ]
-        )
-    
-    @field_validator("assignee", "creator", mode="before")
-    def convert_user_orm_to_str(cls, v):
-        if hasattr(v, "fullname"):
-            return v.fullname
+    @field_validator("assignee_id", "creator_id", mode="before")
+    def convert_user_orm_to_int(cls, v):
+        if isinstance(v, int):
+            return v
+        if hasattr(v, "id"):
+            return v.id
         return v
 
 
 class TaskCreate(TaskBase):
-    """Схема для создания задач в БД."""
-    pass
+    """Схема для создания задачи"""
+
+    creator_id: int
 
 
 class TaskUpdate(TaskBase):
-    """Схема для создания задач в БД."""
+    """Схема для обновления задачи"""
+
     pass

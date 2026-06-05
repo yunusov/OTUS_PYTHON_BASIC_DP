@@ -7,7 +7,6 @@ from src.models.user import UserOrm
 from src.schemas import TaskRead, TaskCreate, TaskUpdate
 from src.services import TaskService
 from src.utils.loguru_config import AppLogger
-from typing import List
 
 # Получить текущего активного пользователя (любого авторизованного)
 current_active_user = fastapi_users.current_user(active=True)
@@ -50,18 +49,6 @@ def delete_task(
     return TaskService().delete(task_id, repository)
 
 
-@router.get("/", response_model=List[TaskRead])
-def get_user_tasks(
-    repository: TaskRepo,
-    user: UserOrm = Depends(current_active_user),
-) -> List[TaskRead]:
-    """Получить все задачи текущего пользователя"""
-    tasks = repository.get_by_user(
-        user.id
-    )  # ← теперь вернёт задачи где creator_id или assignee_id == user.id
-    return [TaskRead.model_validate(task) for task in tasks]
-
-
 @router.get("/{task_id}", response_model=TaskRead)
 def get_task(
     task_id: int,
@@ -69,7 +56,7 @@ def get_task(
     user: UserOrm = Depends(current_active_user),
 ) -> TaskRead:
     """Получить задачу по ID"""
-    task = repository.get_by_id(task_id)
-    if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
-    return TaskRead.model_validate(task)
+    task_orm = repository.get_by_id(task_id)
+    if not task_orm:
+        raise HTTPException(404, "Task not found")
+    return TaskRead.model_validate(task_orm)

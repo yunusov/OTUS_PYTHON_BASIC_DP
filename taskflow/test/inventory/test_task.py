@@ -21,6 +21,9 @@ def test_create_task(
     assert resp.status_code == 200
     task = resp.json()
 
+    print(f"task={task}")  # ← добавь
+    print(f"task_json={task_json}")  # ← добавь
+
     assert_json_equal(task, task_json, exclude=excluded_list)
     assert task["id"]
     assert task["created_at"]
@@ -33,8 +36,10 @@ def test_get_task(
     excluded_list,
     token,
 ):
-    resp = client.get(tasks_api_url % task["id"],
-        headers={"Authorization": f"Bearer {token}"},)
+    resp = client.get(
+        tasks_api_url % task["id"],
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert resp.status_code == 200
 
     json = resp.json()
