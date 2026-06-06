@@ -175,4 +175,7 @@ def excluded_list() -> list:
         "password",
         "is_verified",
         "due_date",
+        "owner",
+        "assignee",
+        "creator",
     ]
