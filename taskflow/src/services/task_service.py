@@ -9,9 +9,9 @@ logger = AppLogger().get_logger()
 class TaskService:
 
     def create(
-            self,
-            task_data: TaskCreate,
-            repository: TaskRepo,
+        self,
+        task_data: TaskCreate,
+        repository: TaskRepo,
     ) -> TaskRead:
         """Создание задачи"""
         task_orm = TaskOrm(**task_data.model_dump())
@@ -21,10 +21,10 @@ class TaskService:
         return TaskRead.model_validate(task_orm)
 
     def modify(
-            self,
-            task_id: int,
-            task_data: TaskUpdate,
-            repository: TaskRepo,
+        self,
+        task_id: int,
+        task_data: TaskUpdate,
+        repository: TaskRepo,
     ) -> TaskRead:
         """Изменение задачи (аналог ProjectService.modify)"""
         task_orm = repository.get_by_id(task_id)
@@ -33,8 +33,16 @@ class TaskService:
 
         # Поля задачи, которые можно обновить
         fields_to_update = [
-            "name", "description", "project_id", "status", "priority",
-            "due_date", "creator_id", "assignee_id", "time_estimate", "time_spent"
+            "name",
+            "description",
+            "project_id",
+            "status",
+            "priority",
+            "due_date",
+            "creator_id",
+            "assignee_id",
+            "time_estimate",
+            "time_spent",
         ]
         for field in fields_to_update:
             if hasattr(task_data, field):
@@ -47,9 +55,9 @@ class TaskService:
         return TaskRead.model_validate(task_orm)
 
     def delete(
-            self,
-            task_id: int,
-            repository: TaskRepo,
+        self,
+        task_id: int,
+        repository: TaskRepo,
     ) -> bool:
         """Удаление задачи (аналог ProjectService.delete)"""
         task_orm = repository.get_by_id(task_id)
@@ -58,3 +66,23 @@ class TaskService:
         repository.delete(task_orm)
         repository.save()
         return True
+
+    def get_by_project_id(
+        self,
+        project_id: int,
+        repository: TaskRepo,
+    ) -> list[TaskRead]:
+        tasks = repository.get_by_project(project_id)
+        result = [
+            TaskRead.model_construct(
+                **{
+                    col: getattr(task, col)
+                    for col in TaskRead.model_fields
+                    if col not in ("assignee", "creator")
+                },
+                assignee=task.assignee.fullname if task.assignee else "",
+                creator=task.creator.fullname if task.creator else "",
+            )
+            for task in tasks
+        ]
+        return result

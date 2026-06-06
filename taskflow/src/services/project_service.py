@@ -1,6 +1,11 @@
 from src.core.dependencies import ProjectRepo
 from src.models import ProjectOrm, UserProjectOrm, UserOrm
-from src.schemas.project import ProjectCreate, ProjectRead, ProjectUpdate, ProjectMembersAdd
+from src.schemas.project import (
+    ProjectCreate,
+    ProjectRead,
+    ProjectUpdate,
+    ProjectMembersAdd,
+)
 from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()
@@ -9,9 +14,9 @@ logger = AppLogger().get_logger()
 class ProjectService:
 
     def create(
-            self,
-            project_data: ProjectCreate,
-            repository: ProjectRepo,
+        self,
+        project_data: ProjectCreate,
+        repository: ProjectRepo,
     ) -> ProjectRead:
         project_orm = ProjectOrm(**project_data.model_dump())
         creator = repository.session.get(UserOrm, project_data.creator_id)
@@ -25,10 +30,10 @@ class ProjectService:
         return ProjectRead.model_validate(project_orm)
 
     def add_members(
-            self,
-            project_id: int,
-            data: ProjectMembersAdd,
-            repository: ProjectRepo,
+        self,
+        project_id: int,
+        data: ProjectMembersAdd,
+        repository: ProjectRepo,
     ) -> ProjectRead:
         project_orm = repository.get_by_id(project_id)
         if project_orm is None:
@@ -57,10 +62,10 @@ class ProjectService:
         return ProjectRead.model_validate(project_orm)
 
     def modify(
-            self,
-            project_id: int,
-            project_data: ProjectUpdate,
-            repository: ProjectRepo,
+        self,
+        project_id: int,
+        project_data: ProjectUpdate,
+        repository: ProjectRepo,
     ) -> ProjectRead:
         project_orm = repository.get_by_id(project_id)
         if project_orm is None:
@@ -88,9 +93,9 @@ class ProjectService:
         return ProjectRead.model_validate(project_orm)
 
     def delete(
-            self,
-            project_id: int,
-            repository: ProjectRepo,
+        self,
+        project_id: int,
+        repository: ProjectRepo,
     ) -> bool:
         project_orm = repository.get_by_id(project_id)
         if project_orm is None:
@@ -99,3 +104,26 @@ class ProjectService:
         repository.delete(project_orm)
         repository.save()
         return True
+
+    def get_by_creator_id(
+        self,
+        owner_id: int,
+        repository: ProjectRepo,
+    ) -> list[ProjectRead]:
+        projects = repository.get_by_creator_id(owner_id)
+        return [
+            ProjectRead.model_validate(project, from_attributes=True).model_copy(
+                update={"owner": project.creator.fullname}
+            )
+            for project in projects
+        ]
+
+    def get_by_id(
+        self,
+        project_id: int,
+        repository: ProjectRepo,
+    ) -> ProjectRead:
+        project = repository.get_by_id(project_id)
+        return ProjectRead.model_validate(project, from_attributes=True).model_copy(
+            update={"owner": project.creator.fullname if project else ""}
+        )

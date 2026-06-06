@@ -4,19 +4,36 @@
 {% endblock %}
 
 {% block content %}
-  <h2>Личный кабинет</h2>
+<style>
+    .index-page.home-page::before {
+        background:
+            linear-gradient(to left, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.4)),
+            url("{{ url_for('images', path='background_hp.png') }}") no-repeat right center;
+        background-size: contain;
+    }
+    .list-group-item {
+        background-color: rgba(255, 255, 255, 0.5) !important; /* 50% прозрачности */
+    }
+</style>
+<div class="index-page home-page container py-4">
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <h1 class="taskflow-title mb-0">Личный кабинет</h1>
+    </div>
 
   {% if error %}
     <div class="alert alert-danger">{{ error }}</div>
   {% endif %}
 
-  <div>
-    <button
-      id="edit-button"
-      type="button"
-      class="btn btn-secondary"
-    >Редактировать
-    </button>
+  
+    {% if  RO != True %}
+      <button
+        id="edit-button"
+        type="button"
+        class="btn btn-secondary"
+      >Редактировать
+      </button>
+    {% endif %}
     <button
       id="save-button"
       type="submit"
@@ -24,7 +41,7 @@
       class="btn btn-warning d-none"
     >Сохранить
     </button>
-  </div>
+
   <ul class="list-group my-3">
     <form action="/user/me" method="post" id="user-form">
       <li class="list-group-item">
@@ -138,21 +155,15 @@
       </h5>
       Please try again later.
     </div>
+    </div>
 
     <script>
       const requestVerificationURL = "{{ url_for('verify:request-token') }}";
 
       const verifyButton = document.getElementById("verify-button");
-      const editButton = document.getElementById("edit-button");
-      const saveButton = document.getElementById("save-button");
       const verificationEmailSent = document.getElementById("verification-email-sent");
       const verificationRequestError = document.getElementById("verification-request-error");
       const loadingIndicator = document.getElementById("loading-indicator");
-
-      editButton.addEventListener("click", async () => {
-        editButton.classList.add("d-none");
-        saveButton.classList.remove("d-none");
-      })
 
       verifyButton.addEventListener("click", async () => {
         verifyButton.classList.add("d-none");

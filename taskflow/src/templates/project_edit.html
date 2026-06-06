@@ -1,0 +1,55 @@
+<!-- templates/tasks/tasks_create.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+    <h1 class="h3 mb-4">{{ page_title }}</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form action={{ form_action }} method="post">
+                <div class="mb-3">
+                    <label class="form-label">Название *</label>
+                    <input type="text" name="name" class="form-control" required minlength="3" maxlength="255" value="{{ project.name if project else '' }}">
+                    <div class="form-text">От 3 до 255 символов</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Описание</label>
+                    <textarea name="description" class="form-control" rows="3" maxlength="1000">{{ project.description if project else '' }}</textarea>
+                    <div class="form-text">Не более 1000 символов</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Тип проекта</label>
+                    <select name="project_type" class="form-select" required>
+                        {% if project %}
+                            <option value="business" {% if project.project_type == 'business' %}selected{% endif %}>Business</option>
+                            <option value="service_desk" {% if project.project_type == 'service_desk' %}selected{% endif %}>Service desk</option>
+                            <option value="software" {% if project.project_type == 'software' %}selected{% endif %}>Software</option>
+                        {% else %}
+                            <option value="business">Business</option>  
+                            <option value="service_desk">Service desk</option>
+                            <option value="software">Software</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <input hidden name="creator_id" value="{{ project.creator_id if project else user.id }}"/>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">{{ button_text }}</button>
+                    <a href="/projects/{{ project.id if project else 'create' }}" class="btn btn-outline-secondary">Назад</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
