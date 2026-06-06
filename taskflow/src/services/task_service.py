@@ -17,7 +17,7 @@ class TaskService:
         task_orm = TaskOrm(**task_data.model_dump())
         repository.create(task_orm)
         repository.save()
-        logger.info(f"Task {task_orm.id} created")
+        logger.info(f"Task '{task_orm.id}' created")
         return TaskRead.model_validate(task_orm)
 
     def modify(
@@ -51,7 +51,7 @@ class TaskService:
                 setattr(task_orm, field, value if value else old_value)
 
         repository.save()
-        logger.info(f"Task {task_orm.id} updated")
+        logger.info(f"Task '{task_orm.id}' updated")
         return TaskRead.model_validate(task_orm)
 
     def delete(

@@ -78,6 +78,12 @@ class TaskRead(TaskBase):
                 f"creator_id={self.creator_id})",
             ]
         )
+    
+    @field_validator("assignee", "creator", mode="before")
+    def convert_user_orm_to_str(cls, v):
+        if hasattr(v, "fullname"):
+            return v.fullname
+        return v
 
 
 class TaskCreate(TaskBase):
