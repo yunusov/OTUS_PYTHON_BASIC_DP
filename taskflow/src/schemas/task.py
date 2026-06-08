@@ -42,30 +42,6 @@ class TaskBase(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-
-class TaskRead(TaskBase):
-    """Схема для чтения задачи с пользователем"""
-
-    id: int
-    created_at: datetime
-    creator_id: int
-    project_id: Optional[int] = None  # ← добавь явно
-    assignee_id: Optional[int] = None  # ← добавь явно
-    creator: Optional[UserRead] = None  # ← добавь
-    assignee: Optional[UserRead] = None  # ← добавь
-
-    def __repr__(self) -> str:
-        return "".join(
-            [
-                f"{self.__repr_name__()}(id={self.id},",
-                f"name={self.name},",
-                f"project_id={self.project_id},",
-                f"status={self.status},",
-                f"priority={self.priority},",
-                f"creator_id={self.creator_id})",
-            ]
-        )
-
     @field_validator("name")
     @classmethod
     def check_name_len(cls, v: str) -> str:
@@ -87,12 +63,42 @@ class TaskRead(TaskBase):
             raise ValueError("Время не может быть отрицательным")
         return v
 
+
+class TaskRead(TaskBase):
+    """Схема для чтения задачи с пользователем"""
+
+    id: int
+    created_at: datetime
+    creator_id: int
+    project_id: Optional[int] = None  # ← добавь явно
+    assignee_id: Optional[int] = None  # ← добавь явно
+    creator: Optional[str] = None  # ← добавь
+    assignee: Optional[str] = None  # ← добавь
+
+    def __repr__(self) -> str:
+        return "".join(
+            [
+                f"{self.__repr_name__()}(id={self.id},",
+                f"name={self.name},",
+                f"project_id={self.project_id},",
+                f"status={self.status},",
+                f"priority={self.priority},",
+                f"creator_id={self.creator_id})",
+            ]
+        )
+
     @field_validator("assignee_id", "creator_id", mode="before")
     def convert_user_orm_to_int(cls, v):
         if isinstance(v, int):
             return v
         if hasattr(v, "id"):
             return v.id
+        return v
+
+    @field_validator("assignee", "creator", mode="before")
+    def convert_user_orm_to_str(cls, v):
+        if hasattr(v, "fullname"):
+            return v.fullname
         return v
 
 

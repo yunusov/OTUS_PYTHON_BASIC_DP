@@ -34,7 +34,7 @@ def index(
     """
     Отображает список всех задач текущего пользователя.
     """
-    tasks = ts.get_all_by_user(user.id, task_repository)
+    tasks = ts.get_user_tasks(user.id, task_repository)
     context = {
         "request": request,
         "user": user,

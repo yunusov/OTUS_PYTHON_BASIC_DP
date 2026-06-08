@@ -21,9 +21,6 @@ def test_create_task(
     assert resp.status_code == 200
     task = resp.json()
 
-    print(f"task={task}")  # ← добавь
-    print(f"task_json={task_json}")  # ← добавь
-
     assert_json_equal(task, task_json, exclude=excluded_list)
     assert task["id"]
     assert task["created_at"]

@@ -1,4 +1,3 @@
-<!-- templates/tasks/task_detail.html -->
 {% extends "base.html" %}
 
 {% block title %}Задача {{ task.name }} - TaskFlow{% endblock %}
@@ -23,26 +22,30 @@
                 </div>
                 <div class="col-md-6">
                     <p><strong>Статус:</strong>
-                        {% if task.status == 'TODO' %}
+                        {% if task.status|lower == 'todo' %}
                             <span class="badge bg-secondary">Сделать</span>
-                        {% elif task.status == 'IN_PROGRESS' %}
+                        {% elif task.status|lower == 'in_progress' %}
                             <span class="badge bg-primary">В процессе</span>
-                        {% elif task.status == 'DONE' %}
+                        {% elif task.status|lower == 'done' %}
                             <span class="badge bg-success">Готово</span>
+                        {% else %}
+                            <span class="badge bg-light">Не установлен</span>
                         {% endif %}
                     </p>
                     <p><strong>Приоритет:</strong>
-                        {% if task.priority == 'LOW' %}
+                        {% if task.priority|lower == 'low' %}
                             <span class="badge bg-info">Низкий</span>
-                        {% elif task.priority == 'MEDIUM' %}
+                        {% elif task.priority|lower == 'medium' %}
                             <span class="badge bg-warning">Средний</span>
-                        {% elif task.priority == 'HIGH' %}
+                        {% elif task.priority|lower == 'high' %}
                             <span class="badge bg-danger">Высокий</span>
+                        {% else %}
+                            <span class="badge bg-light">Не установлен</span>
                         {% endif %}
                     </p>
                     <p><strong>Исполнитель:</strong>
                         {% if task.assignee %}
-                            <a href="/user/{{ task.assignee.id }}/home/">{{ task.assignee.fullname }}</a>
+                            <a href="/user/{{ task.assignee_id }}/home/">{{ task.assignee }}</a>
                         {% else %}
                             Никому
                         {% endif %}
@@ -55,7 +58,7 @@
                     <p><strong>Оценка времени:</strong> {{ task.time_estimate if task.time_estimate else "Не указана" }} ч.</p>
                 </div>
                 <div class="col-md-6">
-                    <p><strong>Создатель:</strong> <a href="/user/{{ task.creator_id }}/home/">{{ task.creator.fullname }}</a></p>
+                    <p><strong>Создатель:</strong> <a href="/user/{{ task.creator_id }}/home/">{{ task.creator }}</a></p>
                     <p><strong>Создана:</strong> {{ task.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
                 </div>
             </div>

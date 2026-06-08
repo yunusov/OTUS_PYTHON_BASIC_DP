@@ -53,11 +53,10 @@ class TaskService:
         for field in fields_to_update:
             if hasattr(task_data, field):
                 value = getattr(task_data, field)
-                if value is not None:  # ← исправлено: проверять на None
+                if value is not None:
                     setattr(task_orm, field, value)
 
-        repository.session.commit()  # ← заменить repository.save()
-        repository.session.refresh(task_orm)  # ← добавить refresh
+        repository.save()
         logger.info(f"Task '{task_orm.id}' updated")
         return TaskRead.model_validate(task_orm, from_attributes=True)
 
@@ -74,29 +73,41 @@ class TaskService:
         repository.save()
         return True
 
-    def get_by_project_id(
-        self,
-        project_id: int,
-        repository: TaskRepo,
-    ) -> list[TaskRead]:
-        tasks = repository.get_by_project(project_id)
-        result = [TaskRead.model_validate(task, from_attributes=True) for task in tasks]
-        return result
-
     def get_by_id(self, task_id: int, repository: TaskRepo) -> TaskRead | None:
         """Получить задачу по ID"""
         task_orm = repository.get_by_id(task_id)
         if task_orm is None:
             return None
-        return TaskRead.model_validate(task_orm, from_attributes=True)
+        return TaskRead.model_validate(task_orm, from_attributes=True).model_copy(
+            update={
+                "creator": task_orm.creator.fullname if task_orm.creator else "",
+                "assignee": task_orm.assignee.fullname if task_orm.assignee else "",
+            }
+        )
 
-    def get_all_by_user(
-        self,
-        user_id: int,
-        repository: TaskRepo,
-    ) -> list[TaskRead]:
-        """
-        Получить все задачи пользователя (как создатель или исполнитель)
-        """
+    def get_user_tasks(self, user_id: int, repository: TaskRepo) -> list[TaskRead]:
+        """Получить все задачи пользователя (как создатель или исполнитель)"""
         tasks = repository.get_by_user(user_id)
-        return [TaskRead.model_validate(task, from_attributes=True) for task in tasks]
+        return [
+            TaskRead.model_validate(task, from_attributes=True).model_copy(
+                update={
+                    "creator": task.creator.fullname if task.creator else "",
+                    "assignee": task.assignee.fullname if task.assignee else "",
+                }
+            )
+            for task in tasks
+        ]
+
+    def get_by_project_id(
+        self, project_id: int, repository: TaskRepo
+    ) -> list[TaskRead]:
+        tasks = repository.get_by_project(project_id)
+        return [
+            TaskRead.model_validate(task, from_attributes=True).model_copy(
+                update={
+                    "creator": task.creator.fullname if task.creator else "",
+                    "assignee": task.assignee.fullname if task.assignee else "",
+                }
+            )
+            for task in tasks
+        ]

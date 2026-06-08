@@ -40,6 +40,9 @@ class TaskRepository(BaseRepository):
     def get_by_id(self, id: int) -> TaskOrm | None:
         """Получить задачу по ID"""
         result = self.session.execute(
-            select(TaskOrm).where(TaskOrm.id == id),
+            select(TaskOrm)
+            .options(joinedload(TaskOrm.creator))
+            .options(joinedload(TaskOrm.assignee))
+            .where(TaskOrm.id == id),
         )
         return result.scalar_one_or_none()
