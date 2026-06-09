@@ -25,7 +25,7 @@ def upgrade() -> None:
     op.add_column(
         "tf_tasks",
         sa.Column(
-            "updated_at",
+            "created_at",
             sa.DateTime(),
             server_default=sa.text("CURRENT_TIMESTAMP"),
             nullable=False,

@@ -1,0 +1,91 @@
+<!-- templates/tasks/tasks_get.html -->
+{% extends "base.html" %}
+
+{% block title %}TaskFlow{% endblock %}
+
+{% block content %}
+<style>
+    .index-page .table {
+        background-color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    .index-page .table th,
+    .index-page .table td {
+        background-color: transparent !important;
+        border-color: rgba(33, 37, 41, 0.1) !important;
+    }
+
+    .index-page .table thead th {
+        background-color: rgba(248, 249, 250, 0.6) !important;
+        border-color: rgba(33, 37, 41, 0.2) !important;
+    }
+</style>
+
+<div class="container py-4 index-page">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h1 class="taskflow-title mb-0">Задачи</h1>
+        <div>
+            <a href="/tasks/create" class="btn btn-primary">
+                + Создать задачу
+            </a>
+        </div>
+    </div>
+
+    {% if user %}
+    <div class="alert alert-dark">
+        <p class="mb-2">Ваши задачи, <strong>{{ user.fullname }}</strong></p>
+    </div>
+    {% endif %}
+
+    {% if tasks %}
+    <table class="table table-light">
+        <thead>
+            <tr>
+                <th scope="col">Название задачи</th>
+                <th scope="col">Проект</th>
+                <th scope="col">Статус</th>
+                <th scope="col">Приоритет</th>
+                <th scope="col">Дедлайн</th>
+                <th scope="col">Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in tasks %}
+            <tr>
+                <th scope="row"><a href="/tasks/{{ task.id }}/">{{ task.name }}</a></th>
+                <td>{{ task.project_id if task.project_id else "Без проекта" }}</td>
+                <td>
+                    {% if task.status == 'todo' %}
+                        <span class="badge bg-secondary">Сделать</span>
+                    {% elif task.status == 'in_progress' %}
+                        <span class="badge bg-primary">В процессе</span>
+                    {% elif task.status == 'done' %}
+                        <span class="badge bg-success">Готово</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if task.priority == 'low' %}
+                        <span class="badge bg-info">Низкий</span>
+                    {% elif task.priority == 'medium' %}
+                        <span class="badge bg-warning">Средний</span>
+                    {% elif task.priority == 'high' %}
+                        <span class="badge bg-danger">Высокий</span>
+                    {% endif %}
+                </td>
+                <td>{{ task.due_date.strftime('%d.%m.%Y %H:%M') if task.due_date else '' }}</td>
+                <td>
+                    <a href="/tasks/{{ task.id }}/edit" class="btn btn-sm btn-outline-primary">
+                        Редактировать
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-warning">
+        У вас пока нет задач
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

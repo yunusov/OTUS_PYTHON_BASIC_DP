@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Редактирование задачи {{ task.name }} - TaskFlow{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+    <h1 class="h3 mb-4">Редактирование задачи</h1>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            {% if error %}
+            <div class="alert alert-danger" role="alert">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form action="{{ form_action }}" method="post">
+                <div class="mb-3">
+                    <label class="form-label">Название *</label>
+                    <input type="text" name="name" class="form-control" required minlength="3" maxlength="255" value="{{ task.name }}">
+                    <div class="form-text">От 3 до 255 символов</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Описание</label>
+                    <textarea name="description" class="form-control" rows="3" maxlength="1000">{{ task.description }}</textarea>
+                    <div class="form-text">Не более 1000 символов</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Статус</label>
+                    <select name="status" class="form-select" required>
+                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>TODO</option>
+                        <option value="IN_PROGRESS" {% if task.status.value == 'IN_PROGRESS' %}selected{% endif %}>IN_PROGRESS</option>
+                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>DONE</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Приоритет</label>
+                    <select name="priority" class="form-select" required>
+                        <option value="LOW" {% if task.priority.value == 'LOW' %}selected{% endif %}>LOW</option>
+                        <option value="MEDIUM" {% if task.priority.value == 'MEDIUM' %}selected{% endif %}>MEDIUM</option>
+                        <option value="HIGH" {% if task.priority.value == 'HIGH' %}selected{% endif %}>HIGH</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Исполнитель</label>
+                    <input type="number" name="assignee_id" class="form-control" value="{{ task.assignee_id or '' }}">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Срок</label>
+                    <input type="date" name="due_date" class="form-control" value="{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}">
+                </div>
+
+                <input hidden name="creator_id" value="{{ task.creator_id }}"/>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                    <a href="/tasks/{{ task.id }}" class="btn btn-outline-secondary">Назад</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

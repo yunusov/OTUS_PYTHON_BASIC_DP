@@ -1,3 +1,4 @@
+# src/schemas/task.py
 from datetime import datetime
 from enum import StrEnum, auto
 from typing import Optional
@@ -6,10 +7,12 @@ from pydantic import (
     ConfigDict,
     field_validator,
 )
+from src.schemas.user import UserRead
 
 
 class TaskStatus(StrEnum):
     """Статусы задач"""
+
     TODO = auto()
     IN_PROGRESS = auto()
     DONE = auto()
@@ -17,6 +20,7 @@ class TaskStatus(StrEnum):
 
 class TaskPriority(StrEnum):
     """Приоритеты задач"""
+
     LOW = auto()
     MEDIUM = auto()
     HIGH = auto()
@@ -24,17 +28,17 @@ class TaskPriority(StrEnum):
 
 class TaskBase(BaseModel):
     """Схема для представления задачи в ответе"""
+
     name: str
     description: Optional[str] = None
     project_id: Optional[int] = None
     status: TaskStatus
     priority: TaskPriority
     due_date: Optional[datetime] = None
-    creator_id: int
+    creator_id: Optional[int] = None
     assignee_id: Optional[int] = None
     time_estimate: Optional[int] = None
     time_spent: Optional[int] = None
-
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -61,11 +65,15 @@ class TaskBase(BaseModel):
 
 
 class TaskRead(TaskBase):
-    """Схема для создания задач в БД."""
+    """Схема для чтения задачи с пользователем"""
+
     id: int
     created_at: datetime
-    assignee: Optional[str] = None
-    creator: Optional[str] = None
+    creator_id: int
+    project_id: Optional[int] = None  # ← добавь явно
+    assignee_id: Optional[int] = None  # ← добавь явно
+    creator: Optional[str] = None  # ← добавь
+    assignee: Optional[str] = None  # ← добавь
 
     def __repr__(self) -> str:
         return "".join(
@@ -78,7 +86,15 @@ class TaskRead(TaskBase):
                 f"creator_id={self.creator_id})",
             ]
         )
-    
+
+    @field_validator("assignee_id", "creator_id", mode="before")
+    def convert_user_orm_to_int(cls, v):
+        if isinstance(v, int):
+            return v
+        if hasattr(v, "id"):
+            return v.id
+        return v
+
     @field_validator("assignee", "creator", mode="before")
     def convert_user_orm_to_str(cls, v):
         if hasattr(v, "fullname"):
@@ -87,10 +103,12 @@ class TaskRead(TaskBase):
 
 
 class TaskCreate(TaskBase):
-    """Схема для создания задач в БД."""
-    pass
+    """Схема для создания задачи"""
+
+    creator_id: int
 
 
 class TaskUpdate(TaskBase):
-    """Схема для создания задач в БД."""
+    """Схема для обновления задачи"""
+
     pass

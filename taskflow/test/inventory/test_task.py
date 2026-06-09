@@ -33,8 +33,10 @@ def test_get_task(
     excluded_list,
     token,
 ):
-    resp = client.get(tasks_api_url % task["id"],
-        headers={"Authorization": f"Bearer {token}"},)
+    resp = client.get(
+        tasks_api_url % task["id"],
+        headers={"Authorization": f"Bearer {token}"},
+    )
     assert resp.status_code == 200
 
     json = resp.json()
