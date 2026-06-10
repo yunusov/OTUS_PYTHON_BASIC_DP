@@ -29,3 +29,8 @@ class UserRepository(BaseRepository):
             select(UserOrm).where(UserOrm.username == username),
         )
         return result.scalar_one_or_none()
+
+    def get_all(self) -> list[UserOrm]:
+        """Получить всех пользователей"""
+        result = self.session.execute(select(UserOrm))
+        return list(result.scalars().all())

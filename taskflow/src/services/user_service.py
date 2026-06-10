@@ -4,6 +4,7 @@ from src.core import settings
 from src.schemas.user import UserRead
 from src.utils.loguru_config import AppLogger
 from src.utils.request_utils import async_request
+from src.core.dependencies import UserRepo
 
 logger = AppLogger().get_logger()
 
@@ -64,3 +65,8 @@ class UserService:
         elif detail and (error := detail[0].setdefault("msg", [])):
             return {"error": error}
         return {}
+
+    def get_all(self, repository: UserRepo) -> list[UserRead]:
+        """Получить всех пользователей"""
+        users = repository.get_all()
+        return [UserRead.model_validate(user, from_attributes=True) for user in users]

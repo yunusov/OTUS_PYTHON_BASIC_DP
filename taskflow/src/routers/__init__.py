@@ -10,6 +10,7 @@ from src.routers.api.v1.comment import router as comment_router
 from src.routers.web.login import router as main_router
 from src.routers.web.user_verify import router as verify_router
 from src.routers.web.projects import router as projects_router
+from src.routers.web.tasks import router as web_task_router
 
 http_bearer = HTTPBearer(auto_error=False)
 
@@ -34,3 +35,4 @@ api_router.include_router(router=comment_router)
 web_router.include_router(router=main_router)
 web_router.include_router(router=verify_router)
 web_router.include_router(router=projects_router)
+web_router.include_router(router=web_task_router)

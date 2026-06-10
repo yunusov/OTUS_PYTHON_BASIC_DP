@@ -12,6 +12,7 @@ from src.schemas import (
 )
 from src.services import ProjectService
 from src.utils.loguru_config import AppLogger
+from typing import List
 
 # Получить текущего активного пользователя (любого авторизованного)
 current_active_user = fastapi_users.current_user(active=True)
@@ -76,3 +77,15 @@ def add_members(
     user: UserOrm = Depends(current_active_user),
 ):
     return ProjectService().add_members(project_id, data, repository)
+
+
+@router.get("/", response_model=List[ProjectRead])
+def get_user_projects(
+    repository: ProjectRepo,
+    user: UserOrm = Depends(current_active_user),
+) -> List[ProjectRead]:
+    """Получить все проекты текущего пользователя"""
+    projects = repository.get_by_user(
+        user.id
+    )  # ← Исправлено: get_by_user вместо get_by_creator_id
+    return [ProjectRead.model_validate(project) for project in projects]
