@@ -18,89 +18,6 @@ cs = CommentService()
 ts = TaskService()
 
 
-@router.get("/", response_class=HTMLResponse, name="comments")
-def index(
-    request: Request,
-    repository: CommentRepo,
-    user: UserRead = Depends(get_current_user_from_session),
-):
-    comments = cs.get_user_comments(user.id, repository)
-    context = {
-        "request": request,
-        "user": user,
-        "comments": comments,
-    }
-    return templates.TemplateResponse(
-        request,
-        "comments.html",
-        context,
-    )
-
-
-@router.get("/{comment_id}/edit", response_class=HTMLResponse)
-def comment_edit_get(
-    request: Request,
-    comment_repository: CommentRepo,
-    task_repository: TaskRepo,
-    comment_id: int,
-    user: UserRead = Depends(get_current_user_from_session),
-):
-    comment = cs.get_by_id(comment_id, comment_repository)
-    tasks = ts.get_user_tasks(user.id, task_repository)
-    context = {
-        "comment": comment,
-        "page_title": "Редактирование комментария",
-        "form_action": f"/comments/{comment_id}/edit",
-        "button_text": "Сохранить",
-        "tasks": tasks,
-        "user": user,
-    }
-    return templates.TemplateResponse(
-        request,
-        "comment_edit.html",
-        context,
-    )
-
-
-@router.post("/{comment_id}/edit", response_class=HTMLResponse)
-def comment_edit_post(
-    request: Request,
-    comment_repository: CommentRepo,
-    comment_id: int,
-    content: str = Form(...),
-    task_id: int = Form(...),
-    user: UserRead = Depends(get_current_user_from_session),
-):
-    comment_update = CommentUpdate(
-        content=content,
-        task_id=task_id,
-    )
-    cs.modify(comment_id, comment_update, comment_repository)
-    return RedirectResponse(f"/tasks/{task_id}/", status_code=302)
-
-
-@router.get("/create", response_class=HTMLResponse)
-def comment_create_get(
-    request: Request,
-    task_repository: TaskRepo,
-    user: UserRead = Depends(get_current_user_from_session),
-):
-    tasks = ts.get_user_tasks(user.id, task_repository)
-    context = {
-        "request": request,
-        "user": user,
-        "page_title": "Создание комментария",
-        "form_action": f"/comments/create",
-        "button_text": "Создать",
-        "tasks": tasks,
-    }
-    return templates.TemplateResponse(
-        request,
-        "comment_edit.html",
-        context,
-    )
-
-
 @router.post("/create", response_class=HTMLResponse)
 def comment_create_post(
     request: Request,
@@ -110,31 +27,16 @@ def comment_create_post(
     task_id: int = Form(...),
     user: UserRead = Depends(get_current_user_from_session),
 ):
-    # Проверка задачи
     task = ts.get_by_id(task_id, task_repository)
     if not task:
-        tasks = ts.get_user_tasks(user.id, task_repository)
-        return templates.TemplateResponse(
-            request,
-            "comment_edit.html",
-            {
-                "request": request,
-                "user": user,
-                "page_title": "Создание комментария",
-                "form_action": f"/comments/create",
-                "button_text": "Создать",
-                "tasks": tasks,
-                "error": "Задача не найдена",
-            },
-            status_code=400,
-        )
+        return RedirectResponse(url="/tasks/", status_code=302)
 
     comment_create = CommentCreate(
         content=content,
         task_id=task_id,
         creator_id=user.id,
     )
-    comment = cs.create(comment_create, comment_repository)
+    cs.create(comment_create, comment_repository)
     return RedirectResponse(f"/tasks/{task_id}/", status_code=302)
 
 
