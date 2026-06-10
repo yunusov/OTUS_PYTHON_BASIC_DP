@@ -9,11 +9,14 @@ from src.repositories import (
     UserRepository,
     TaskRepository,
     ProjectRepository,
+    CommentRepository,
 )
 from src.utils.loguru_config import AppLogger
+
 logger = AppLogger().get_logger()
 
 db_helper = get_db_helper()
+
 
 def get_db_session():
     session = db_helper.session_factory()
@@ -23,11 +26,13 @@ def get_db_session():
         logger.debug(f"Closing session {id(session)}")
         session.close()
 
+
 DbSession = Annotated[Session, Depends(get_db_session)]
 
 
 def get_user_repository(session: DbSession):
     return UserRepository(session)
+
 
 UserRepo = Annotated["UserRepository", Depends(get_user_repository)]
 
@@ -35,10 +40,19 @@ UserRepo = Annotated["UserRepository", Depends(get_user_repository)]
 def get_task_repository(session: DbSession):
     return TaskRepository(session)
 
+
 TaskRepo = Annotated[TaskRepository, Depends(get_task_repository)]
 
 
 def get_project_repository(session: DbSession):
     return ProjectRepository(session)
 
+
 ProjectRepo = Annotated[ProjectRepository, Depends(get_project_repository)]
+
+
+def get_comment_repository(session: DbSession):
+    return CommentRepository(session)
+
+
+CommentRepo = Annotated[CommentRepository, Depends(get_comment_repository)]

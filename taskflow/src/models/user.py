@@ -80,6 +80,11 @@ class UserOrm(
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    comments: Mapped[list["CommentOrm"]] = relationship(
+        "CommentOrm",
+        foreign_keys="CommentOrm.creator_id",
+        back_populates="creator",
+    )
 
     @declared_attr
     def __table_args__(cls):

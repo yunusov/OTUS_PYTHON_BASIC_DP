@@ -54,8 +54,8 @@
             </div>
             <div class="row mt-3">
                 <div class="col-md-6">
-                    <p><strong>Дедлайн:</strong> {{ task.due_date.strftime('%d.%m.%Y %H:%M') if task.due_date else "Не установлен" }}</p>
-                    <p><strong>Оценка времени:</strong> {{ task.time_estimate if task.time_estimate else "Не указана" }} ч.</p>
+                    <p><strong>Дедлайн:</strong> {{ task.due_date.strftime('%d.%m.%Y %H:%M') if task.due_date else "Не установлен" }} ч.</p>
+                    <p><strong>Оценка времени:</strong> {{ task.time_estimate if task.time_estimate else "Не указана" }}</p>
                 </div>
                 <div class="col-md-6">
                     <p><strong>Создатель:</strong> <a href="/user/{{ task.creator_id }}/home/">{{ task.creator }}</a></p>
@@ -64,5 +64,96 @@
             </div>
         </div>
     </div>
+
+    <!-- Секция комментариев -->
+    <div class="card shadow-sm mt-4">
+        <div class="card-body p-4">
+            <h2 class="mb-4">Комментарии</h2>
+
+            <!-- Список комментариев -->
+            {% if comments %}
+            <div class="comments-list mb-4">
+                {% for comment in comments %}
+                <div class="comment-item border-bottom py-3" id="comment-{{ comment.id }}">
+                    <div class="d-flex align-items-center mb-2">
+                        {% if user and user.id == comment.creator_id %}
+                            <a href="/user/{{ comment.creator_id }}/home/" class="text-primary fw-bold">{{ comment.creator }}</a> <span class="text-muted ms-2">(Вы)</span>
+                        {% else %}
+                            <a href="/user/{{ comment.creator_id }}/home/" class="text-primary fw-bold">{{ comment.creator }}</a>
+                        {% endif %}
+                        <span class="text-muted ms-3 small">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </div>
+
+                    <!-- Текст комментария (показывается, когда не редактируем) -->
+                    <div class="comment-content mb-2" id="comment-content-{{ comment.id }}">
+                        {{ comment.content }}
+                    </div>
+
+                    <!-- Форма редактирования (скрыта по умолчанию) -->
+                    {% if user and user.id == comment.creator_id %}
+                    <div class="comment-edit-form mb-2" id="comment-edit-form-{{ comment.id }}" style="display: none;">
+                        <form action="/comments/{{ comment.id }}/edit-inline" method="post">
+                            <textarea
+                                name="content"
+                                class="form-control mb-2"
+                                rows="3"
+                                id="comment-textarea-{{ comment.id }}"
+                            >{{ comment.content }}</textarea>
+                            <button type="submit" class="btn btn-sm btn-primary">Сохранить</button>
+                            <button type="button" class="btn btn-sm btn-secondary" onclick="cancelEdit({{ comment.id }})">Отменить</button>
+                        </form>
+                    </div>
+                    {% endif %}
+
+                    <!-- Кнопки редактировать/удалить (для своего комментария) -->
+                    {% if user and user.id == comment.creator_id %}
+                    <div class="comment-actions">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="startEdit({{ comment.id }})">Редактировать</button>
+                        <form action="/comments/{{ comment.id }}/delete" method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить комментарий?')">Удалить</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted mb-4">Комментариев пока нет</p>
+            {% endif %}
+
+            <!-- Форма создания комментария (как на GitHub) -->
+            <div class="comment-form">
+                <h4 class="mb-3">Новый комментарий</h4>
+                <form action="/comments/create" method="post">
+                    <input type="hidden" name="task_id" value="{{ task.id }}">
+
+                    <div class="form-group mb-3">
+                        <textarea
+                            name="content"
+                            class="form-control"
+                            placeholder="Введите комментарий..."
+                            rows="5"
+                            required
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Комментировать</button>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+function startEdit(commentId) {
+    document.getElementById(`comment-content-${commentId}`).style.display = 'none';
+    document.getElementById(`comment-edit-form-${commentId}`).style.display = 'block';
+    document.getElementById(`comment-textarea-${commentId}`).focus();
+}
+
+function cancelEdit(commentId) {
+    document.getElementById(`comment-content-${commentId}`).style.display = 'block';
+    document.getElementById(`comment-edit-form-${commentId}`).style.display = 'none';
+}
+</script>
 {% endblock %}

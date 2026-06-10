@@ -8,7 +8,7 @@ from .project import (
     ProjectRead,
     ProjectUpdate,
     ProjectType,
-    ProjectMembersAdd
+    ProjectMembersAdd,
 )
 from .task import (
     TaskCreate,
@@ -16,6 +16,11 @@ from .task import (
     TaskUpdate,
     TaskStatus,
     TaskPriority,
+)
+from .comment import (
+    CommentCreate,
+    CommentRead,
+    CommentUpdate,
 )
 
 __all__ = [
@@ -32,4 +37,7 @@ __all__ = [
     "TaskStatus",
     "TaskPriority",
     "ProjectMembersAdd",
+    "CommentCreate",
+    "CommentRead",
+    "CommentUpdate",
 ]
