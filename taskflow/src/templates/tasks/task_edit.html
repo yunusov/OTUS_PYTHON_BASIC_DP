@@ -22,40 +22,79 @@
                 </div>
 
                 <div class="mb-3">
+                    <label class="form-label">Проект *</label>
+                    <select name="project_id" class="form-select" id="project-select" required>
+                        <option value="">Выберите проект</option>
+                        {% for project in projects %}
+                            <option value="{{ project.id }}" {% if task.project_id == project.id %}selected{% endif %}>
+                                {{ project.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if not projects %}
+                    <div class="form-text text-warning">У вас пока нет проектов. <a href="/projects/create">Создайте проект</a> сначала.</div>
+                    {% endif %}
+                    <div class="invalid-feedback">Пожалуйста, выберите проект</div>
+                </div>
+
+                <div class="mb-3">
                     <label class="form-label">Описание</label>
                     <textarea name="description" class="form-control" rows="3" maxlength="1000">{{ task.description }}</textarea>
                     <div class="form-text">Не более 1000 символов</div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Статус</label>
-                    <select name="status" class="form-select" required>
-                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>TODO</option>
-                        <option value="IN_PROGRESS" {% if task.status.value == 'IN_PROGRESS' %}selected{% endif %}>IN_PROGRESS</option>
-                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>DONE</option>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Приоритет</label>
-                    <select name="priority" class="form-select" required>
-                        <option value="LOW" {% if task.priority.value == 'LOW' %}selected{% endif %}>LOW</option>
-                        <option value="MEDIUM" {% if task.priority.value == 'MEDIUM' %}selected{% endif %}>MEDIUM</option>
-                        <option value="HIGH" {% if task.priority.value == 'HIGH' %}selected{% endif %}>HIGH</option>
-                    </select>
-                </div>
-
-                <div class="mb-3">
                     <label class="form-label">Исполнитель</label>
-                    <input type="number" name="assignee_id" class="form-control" value="{{ task.assignee_id or '' }}">
+                    <select name="assignee_id" class="form-select" id="assignee-select">
+                        <option value="">Никому</option>
+                        {% for user in users %}
+                            <option value="{{ user.id }}" {% if task.assignee_id == user.id %}selected{% endif %}>
+                                {{ user.fullname }}
+                            </option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Срок</label>
-                    <input type="date" name="due_date" class="form-control" value="{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else '' }}">
+                    <label class="form-label">Срок выполнения</label>
+                    <input
+                        type="datetime-local"
+                        name="due_date"
+                        class="form-control"
+                        value="{{ task.due_date.strftime('%Y-%m-%dT%H:%M') if task.due_date else '' }}"
+                    >
                 </div>
 
-                <input hidden name="creator_id" value="{{ task.creator_id }}"/>
+                <div class="mb-3">
+                    <label class="form-label">Оценка времени (часы)</label>
+                    <input
+                        type="number"
+                        name="time_estimate"
+                        class="form-control"
+                        min="0"
+                        step="0.5"
+                        value="{{ task.time_estimate if task.time_estimate is not none else '' }}"
+                        placeholder="Например: 4"
+                    >
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Статус *</label>
+                    <select name="status" class="form-select" required>
+                        <option value="TODO" {% if task.status.value == 'TODO' %}selected{% endif %}>Сделать (TODO)</option>
+                        <option value="IN_PROGRESS" {% if task.status.value == 'IN_PROGRESS' %}selected{% endif %}>В процессе (IN_PROGRESS)</option>
+                        <option value="DONE" {% if task.status.value == 'DONE' %}selected{% endif %}>Готово (DONE)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Приоритет *</label>
+                    <select name="priority" class="form-select" required>
+                        <option value="LOW" {% if task.priority.value == 'LOW' %}selected{% endif %}>Низкий (LOW)</option>
+                        <option value="MEDIUM" {% if task.priority.value == 'MEDIUM' %}selected{% endif %}>Средний (MEDIUM)</option>
+                        <option value="HIGH" {% if task.priority.value == 'HIGH' %}selected{% endif %}>Высокий (HIGH)</option>
+                    </select>
+                </div>
 
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Сохранить</button>
@@ -65,4 +104,34 @@
         </div>
     </div>
 </div>
+
+<style>
+    .index-page .form-control,
+    .index-page .form-select {
+        background-color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    .index-page .form-control:focus,
+    .index-page .form-select:focus {
+        background-color: rgba(255, 255, 255, 0.9) !important;
+    }
+</style>
+
+<script>
+const projectSelect = document.getElementById('project-select');
+
+if (projectSelect) {
+    projectSelect.addEventListener('change', function() {
+        this.classList.remove('is-invalid');
+    });
+
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (!projectSelect.value) {
+            e.preventDefault();
+            projectSelect.classList.add('is-invalid');
+            alert('Пожалуйста, выберите проект');
+        }
+    });
+}
+</script>
 {% endblock %}
