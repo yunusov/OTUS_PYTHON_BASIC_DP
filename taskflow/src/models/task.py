@@ -25,6 +25,7 @@ from src.schemas import (
 if TYPE_CHECKING:
     from .project import ProjectOrm
     from .user import UserOrm
+    from .comment import CommentOrm
 
 
 class TaskOrm(
@@ -87,6 +88,10 @@ class TaskOrm(
         "UserOrm",
         foreign_keys=[assignee_id],
         lazy="selectin",
+    )
+    comments: Mapped[list["CommentOrm"]] = relationship(
+        "CommentOrm",
+        back_populates="task",
     )
 
     def __str__(self) -> str:

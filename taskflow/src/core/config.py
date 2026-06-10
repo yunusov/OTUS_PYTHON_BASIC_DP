@@ -9,6 +9,7 @@ ENV_FILE = Path(__file__).parent / ".env"
 
 class BaseConfig(BaseSettings):
     """Базовый класс для всех настроек, читающих из .env"""
+
     model_config = SettingsConfigDict(
         case_sensitive=False,
         env_file=ENV_FILE,
@@ -27,6 +28,7 @@ class ApiV1Prefix(BaseModel):
     users: str = "/users"
     logout: str = "/logout"
     login: str = "/login"
+    comments: str = "/comments"
 
 
 class ApiPrefix(BaseModel):
@@ -53,25 +55,32 @@ class ApiPrefix(BaseModel):
         parts = (self.PREFIX, self.v1.prefix, self.v1.auth)
         path = "".join(parts)
         return path.removeprefix("/")
-    
+
     @property
     def users_url(self) -> str:
         # api/v1/users
         parts = (self.PREFIX, self.v1.prefix, "/users")
         path = "".join(parts)
         return path.removeprefix("/")
-    
+
     @property
     def projects_url(self) -> str:
         # api/v1/projects
         parts = (self.PREFIX, self.v1.prefix, "/projects")
         path = "".join(parts)
         return path.removeprefix("/")
-    
+
     @property
     def tasks_url(self) -> str:
         # api/v1/tasks
         parts = (self.PREFIX, self.v1.prefix, "/tasks")
+        path = "".join(parts)
+        return path.removeprefix("/")
+
+    @property
+    def comments_url(self) -> str:
+        # api/v1/comments
+        parts = (self.PREFIX, self.v1.prefix, "/comments")
         path = "".join(parts)
         return path.removeprefix("/")
 
@@ -94,10 +103,11 @@ class DBConfig(BaseConfig):
     pool_size: int = 5
     max_overflow: int = 10
 
+
 class EmailConfig(BaseConfig):
     email_host: str = "127.0.0.1"
     email_port: str = "1025"
-    email_login: str = "admin@taskflow.com" 
+    email_login: str = "admin@taskflow.com"
     email_token: str = ""
     smtp_auth: bool = False
 
@@ -108,7 +118,7 @@ class AccessToken(BaseConfig):
     verification_token_secret: str
 
 
-class Settings(BaseConfig):       
+class Settings(BaseConfig):
     api: ApiPrefix = ApiPrefix()
     db: DBConfig = DBConfig()
     email: EmailConfig = EmailConfig()
