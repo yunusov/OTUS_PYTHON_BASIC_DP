@@ -111,3 +111,16 @@ class TaskService:
             )
             for task in tasks
         ]
+
+    def get_tasks_by_str(self, search_str: str, repository: TaskRepo) -> list[TaskRead]:
+        """Получить все задачи пользователя (как создатель или исполнитель)"""
+        tasks = repository.get_by_str(search_str)
+        return [
+            TaskRead.model_validate(task, from_attributes=True).model_copy(
+                update={
+                    "creator": task.creator.fullname if task.creator else "",
+                    "assignee": task.assignee.fullname if task.assignee else "",
+                }
+            )
+            for task in tasks
+        ]
