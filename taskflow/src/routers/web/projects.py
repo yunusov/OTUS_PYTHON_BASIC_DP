@@ -33,7 +33,7 @@ def index(
     }
     return templates.TemplateResponse(
         request,
-        "projects.html",
+        "projects/projects.html",
         context,
     )
 
@@ -55,7 +55,7 @@ def project_view(
     }
     return templates.TemplateResponse(
         request,
-        "project_detail.html",
+        "projects/project_detail.html",
         context,
     )
 
@@ -77,7 +77,7 @@ def project_edit_get(
     }
     return templates.TemplateResponse(
         request,
-        "project_edit.html",
+        "projects/project_edit.html",
         context,
     )
 
@@ -115,7 +115,7 @@ def project_create_get(
     }
     return templates.TemplateResponse(
         request,
-        "project_edit.html",
+        "projects/project_edit.html",
         context,
     )
 

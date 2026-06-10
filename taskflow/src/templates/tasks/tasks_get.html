@@ -33,7 +33,7 @@
 
     {% if user %}
     <div class="alert alert-dark">
-        <p class="mb-2">Ваши задачи, <strong>{{ user.fullname }}</strong></p>
+        <p class="mb-2">{{ info }}</p>
     </div>
     {% endif %}
 
@@ -84,7 +84,11 @@
     </table>
     {% else %}
     <div class="alert alert-warning">
-        У вас пока нет задач
+        {% if no_found %}
+            {{ no_found }}
+        {% else %}
+            У вас пока нет задач
+        {% endif %}
     </div>
     {% endif %}
 </div>

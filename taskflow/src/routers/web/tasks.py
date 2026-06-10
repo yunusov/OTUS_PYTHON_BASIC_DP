@@ -3,7 +3,12 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
 
 from src.core.auth.session_user import get_current_user_from_session
-from src.core.dependencies import ProjectRepo, TaskRepo, CommentRepo, UserRepo
+from src.core.dependencies import (
+    ProjectRepo,
+    TaskRepo,
+    CommentRepo,
+    UserRepo,
+)
 from src.utils.jinja_templates import templates
 from src.schemas import (
     UserRead,
@@ -12,9 +17,13 @@ from src.schemas import (
     TaskStatus,
     TaskPriority,
 )
-from src.services import ProjectService, TaskService, UserService, CommentService
+from src.services import (
+    ProjectService,
+    TaskService,
+    UserService,
+    CommentService,
+)
 from src.utils.loguru_config import AppLogger
-from src.utils.request_utils import async_request
 
 logger = AppLogger().get_logger()
 router = APIRouter(prefix="/tasks")
@@ -29,7 +38,6 @@ cs = CommentService()
 def index(
     request: Request,
     task_repository: TaskRepo,
-    project_repository: ProjectRepo,
     user: UserRead = Depends(get_current_user_from_session),
 ):
     """
@@ -41,6 +49,7 @@ def index(
         "user": user,
         "page_title": "Задачи",
         "tasks": tasks,
+        "info": f"Ваши задачи, {user.fullname}"
     }
     return templates.TemplateResponse(
         request,
@@ -211,8 +220,6 @@ def task_create_post(
 def task_edit_get(
     request: Request,
     task_repository: TaskRepo,
-    project_repository: ProjectRepo,
-    user_repository: UserRepo,
     task_id: int,
     user: UserRead = Depends(get_current_user_from_session),
 ):
@@ -220,16 +227,12 @@ def task_edit_get(
     Отображает форму редактирования задачи по ID.
     """
     task = ts.get_by_id(task_id, task_repository)
-    projects = ps.get_by_creator_id(user.id, project_repository)
-    users = us.get_all(user_repository)
 
     context = {
         "task": task,
         "page_title": "Редактирование задачи",
         "form_action": f"/tasks/{task_id}/edit",
         "button_text": "Сохранить",
-        "projects": projects,
-        "users": users,
         "user": user,
     }
     return templates.TemplateResponse(

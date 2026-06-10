@@ -46,3 +46,13 @@ class TaskRepository(BaseRepository):
             .where(TaskOrm.id == id),
         )
         return result.scalar_one_or_none()
+
+    def get_by_str(self, search_str: str) -> list[TaskOrm]:
+        """Задачи по строке"""
+        result = self.session.execute(
+            select(TaskOrm)
+            .options(joinedload(TaskOrm.assignee, innerjoin=True))
+            .options(joinedload(TaskOrm.creator, innerjoin=True))
+            .where(TaskOrm.name.like("%" + search_str + "%"))
+        )
+        return list(result.scalars().all())

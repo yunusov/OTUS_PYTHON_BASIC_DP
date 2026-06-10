@@ -10,6 +10,12 @@
             <ul class="navbar-nav ms-auto">
                 {% if user %}
                     <li class="nav-item">
+                        <form method="post" class="d-flex" action="/search/">
+                            <input class="form-control me-2" type="search" placeholder="Введите текст" aria-label="Search" id="search_str" name="search_str">
+                            <button class="btn btn-outline-success" type="submit">Поиск</button>
+                        </form>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="/tasks">Задачи</a>
                     </li>
                     <li class="nav-item">
