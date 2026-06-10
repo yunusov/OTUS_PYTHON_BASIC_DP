@@ -34,9 +34,29 @@ def task(client, tasks_api_url, task_json, token):
     return resp.json()
 
 
+@pytest.fixture
+def comment(client, comments_api_url, comment_json, project_user, token):
+    """Создаёт комментарий через POST запрос и возвращает его"""
+    test_comment = comment_json.copy()
+    test_comment["creator_id"] = project_user["id"]
+
+    resp = client.post(
+        comments_api_url % "",
+        json=test_comment,
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert resp.status_code == 200
+    return resp.json()
+
+
 @pytest.fixture(scope="module")
 def projects_api_url(server_url):
     return "".join([f"{server_url}", settings.api.projects_url, "/%s"])
+
+
+@pytest.fixture(scope="module")
+def comments_api_url(server_url):
+    return "".join([f"{server_url}", settings.api.comments_url, "/%s"])
 
 
 @pytest.fixture(scope="module")
@@ -69,4 +89,13 @@ def task_json(project, project_user):
         "time_estimate": 60,
         "time_spent": 0,
         "created_at": "2026-04-30T12:00:00Z",
+    }
+
+
+@pytest.fixture
+def comment_json(task):
+    """JSON для создания комментария (под CommentCreate)"""
+    return {
+        "content": "Test comment content",
+        "task_id": task["id"],
     }

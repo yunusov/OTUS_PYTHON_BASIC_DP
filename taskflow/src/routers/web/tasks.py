@@ -3,7 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
 
 from src.core.auth.session_user import get_current_user_from_session
-from src.core.dependencies import ProjectRepo, TaskRepo, UserRepo
+from src.core.dependencies import ProjectRepo, TaskRepo, CommentRepo, UserRepo
 from src.utils.jinja_templates import templates
 from src.schemas import (
     UserRead,
@@ -12,7 +12,7 @@ from src.schemas import (
     TaskStatus,
     TaskPriority,
 )
-from src.services import ProjectService, TaskService, UserService
+from src.services import ProjectService, TaskService, UserService, CommentService
 from src.utils.loguru_config import AppLogger
 from src.utils.request_utils import async_request
 
@@ -22,6 +22,7 @@ router = APIRouter(prefix="/tasks")
 ps = ProjectService()
 ts = TaskService()
 us = UserService()
+cs = CommentService()
 
 
 @router.get("/", response_class=HTMLResponse, name="tasks")
@@ -52,6 +53,7 @@ def index(
 def task_view(
     request: Request,
     task_repository: TaskRepo,
+    comment_repository: CommentRepo,
     task_id: int,
     user: UserRead = Depends(get_current_user_from_session),
 ):
@@ -59,8 +61,10 @@ def task_view(
     Отображает детальную информацию о задаче по ID.
     """
     task = ts.get_by_id(task_id, task_repository)
+    comments = cs.get_by_task_id(task_id, comment_repository)
     context = {
         "task": task,
+        "comments": comments,
         "user": user,
     }
     return templates.TemplateResponse(

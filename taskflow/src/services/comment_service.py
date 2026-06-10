@@ -88,3 +88,15 @@ class CommentService:
             )
             for comment in comments
         ]
+
+    def get_user_comments(
+        self, user_id: int, repository: CommentRepo
+    ) -> list[CommentRead]:
+        """Получить все комментарии пользователя"""
+        comments = repository.get_by_creator_id(user_id)
+        return [
+            CommentRead.model_validate(comment, from_attributes=True).model_copy(
+                update={"creator": comment.creator.fullname if comment.creator else ""}
+            )
+            for comment in comments
+        ]
