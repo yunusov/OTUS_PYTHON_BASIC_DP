@@ -5,8 +5,11 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.core import settings
+from src.utils.loguru_config import AppLogger
 from .async_session_wrapper import AsyncSessionWrapper
 
+
+logger = AppLogger().get_logger()
 
 class DatabaseHelper:
     def __init__(
@@ -39,7 +42,8 @@ class DatabaseHelper:
             try:
                 yield AsyncSessionWrapper(session)
                 session.commit()
-            except Exception:
+            except Exception as e:
+                logger.error(e)
                 session.rollback()
                 raise
 

@@ -42,6 +42,18 @@
                         {% endif %}
                     </select>
                 </div>
+                <div class="mb-3">
+                    <label class="form-label">Назначенные на проект</label>
+                    <select name="assigned_users" class="form-select" size="10" multiple required>
+                    {% for v_user in verified_users %}
+                        {% if project %}
+                            <option value="{{ v_user.id }}" {% if v_user.id == user.id or v_user.assigned_project == project.id %}selected{% endif %}>{{ v_user.fullname }}</option>
+                        {% else %}
+                            <option value="{{ v_user.id }}" {% if v_user.id == user.id %}selected{% endif %}>{{ v_user.fullname }}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </div>
                 <input hidden name="creator_id" value="{{ project.creator_id if project else user.id }}"/>
 
                 <div class="d-flex gap-2">

@@ -17,6 +17,7 @@ from src.models import BaseOrm
 if TYPE_CHECKING:
     from .access_token import AccessTokenOrm
     from .project import ProjectOrm
+    from .comment import CommentOrm
     from .task import TaskOrm
     from .user_project import UserProjectOrm
     from src.core.async_session_wrapper import AsyncSessionWrapper
