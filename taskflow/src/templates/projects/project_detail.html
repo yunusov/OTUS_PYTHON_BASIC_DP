@@ -53,6 +53,12 @@
                 <div class="col-md-3">
                     <strong>Задач:</strong>
                     <p class="mb-0">{{ tasks|length }}</p>
+                </div>                
+                <div class="col-md-3">
+                    <strong>Пользователи проекта:</strong>
+                    {% for user in project_users %}
+                        <p class="mb-0">{{ user.fullname }}</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>

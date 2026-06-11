@@ -1,7 +1,7 @@
 from fastapi import Request
 
 from src.core import settings
-from src.schemas.user import UserRead
+from src.schemas.user import UserRead, UserReadSimple
 from src.utils.loguru_config import AppLogger
 from src.utils.request_utils import async_request
 from src.core.dependencies import UserRepo
@@ -69,4 +69,37 @@ class UserService:
     def get_all(self, repository: UserRepo) -> list[UserRead]:
         """Получить всех пользователей"""
         users = repository.get_all()
+        return [UserRead.model_validate(user, from_attributes=True) for user in users]
+
+    def get_all_verified(
+        self,
+        repository: UserRepo,
+    ) -> list[UserRead]:
+        """Получить всех верифицированных пользователей"""
+        users = repository.get_all_verified()
+        return [UserRead.model_validate(user, from_attributes=True) for user in users]
+
+    def get_all_verified_by_project(
+        self,
+        repository: UserRepo,
+        project_id: int,
+    ) -> list[UserReadSimple]:
+        """Получить всех верифицированных пользователей"""
+        users = repository.get_all_verified_by_project(project_id)
+        return [
+            UserReadSimple(
+                id=user["id"],
+                fullname=user["fullname"],
+                assigned_project=(user.get("assigned_project")),
+            )
+            for user in users
+        ]
+
+    def get_users_by_project(
+        self,
+        project_id: int,
+        repository: UserRepo,
+    ) -> list[UserRead]:
+        """Получить всех пользователей проекта"""
+        users = repository.get_users_by_project(project_id)
         return [UserRead.model_validate(user, from_attributes=True) for user in users]

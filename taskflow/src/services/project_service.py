@@ -43,8 +43,12 @@ class ProjectService:
         new_user_ids = [
             user_id for user_id in data.user_ids if user_id not in existing_user_ids
         ]
+        removed_user_ids = existing_user_ids - set(data.user_ids)
+        if removed_user_ids:
+            repository.remove_members(project_id, removed_user_ids)
 
         if not new_user_ids:
+            repository.save()
             return ProjectRead.model_validate(project_orm)
 
         users = (
@@ -124,6 +128,9 @@ class ProjectService:
         repository: ProjectRepo,
     ) -> ProjectRead:
         project = repository.get_by_id(project_id)
+        if project is None:
+            raise ValueError("Проект с таким ID не существует!")
+
         return ProjectRead.model_validate(project, from_attributes=True).model_copy(
-            update={"owner": project.creator.fullname if project else ""}
+            update={"owner": project.creator.fullname}
         )

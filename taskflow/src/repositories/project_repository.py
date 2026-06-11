@@ -38,3 +38,15 @@ class ProjectRepository(BaseRepository):
             select(ProjectOrm).where(ProjectOrm.name == name),
         )
         return result.scalar_one_or_none()
+
+    def remove_members(self, project_id: int, user_ids: set[int]) -> int:
+        """Удалить участников проекта.
+
+        """
+        from src.models import UserProjectOrm
+
+        result = self.session.query(UserProjectOrm).filter(
+            UserProjectOrm.project_id == project_id,
+            UserProjectOrm.user_id.in_(user_ids),
+        ).delete(synchronize_session='fetch')
+        return result
