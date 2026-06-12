@@ -1,6 +1,15 @@
-from fastapi import APIRouter, Form, Query, Request, Depends
+from fastapi import (
+    APIRouter,
+    Form,
+    Query,
+    Request,
+    Depends,
+)
+from fastapi import APIRouter, Form, Query, Request, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
+
+from src.core.ws_manager import ws_manager
 
 from src.core.auth.session_user import get_current_user_from_session
 from src.core.auth.user_manager import UserManager
@@ -29,6 +38,7 @@ from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()
 router = APIRouter(prefix="/tasks")
+
 
 ps = ProjectService()
 ts = TaskService()
@@ -117,6 +127,17 @@ def task_project_create_get(
     project_id: int | None = None,
     user: UserRead = Depends(get_current_user_from_session),
 ):
+    return task_create_form(request, project_repository, user_repository, None, user)
+
+
+@router.get("/create/{project_id}", response_class=HTMLResponse)
+def task_project_create_get(
+    request: Request,
+    project_repository: ProjectRepo,
+    user_repository: UserRepo,
+    project_id: int | None = None,
+    user: UserRead = Depends(get_current_user_from_session),
+):
     """
     Отображает форму создания новой задачи.
     """
@@ -169,10 +190,6 @@ async def task_create_post(
     user: UserRead = Depends(get_current_user_from_session),
     user_manager: UserManager = Depends(get_user_manager),
 ):
-    """
-    Обрабатывает создание новой задачи из формы.
-    """
-    # Проверка проекта
     if project_id:
         project = ps.get_by_id(project_id, project_repository)
         if not project:
@@ -185,7 +202,7 @@ async def task_create_post(
                     "request": request,
                     "user": user,
                     "page_title": "Создать задачу",
-                    "form_action": f"/tasks/create",
+                    "form_action": "/tasks/create",
                     "button_text": "Создать",
                     "projects": projects,
                     "users": users,
@@ -194,7 +211,6 @@ async def task_create_post(
                 status_code=400,
             )
 
-    # Валидация статуса и приоритета
     try:
         status_enum = TaskStatus(status)
         priority_enum = TaskPriority(priority)
@@ -208,7 +224,7 @@ async def task_create_post(
                 "request": request,
                 "user": user,
                 "page_title": "Создать задачу",
-                "form_action": f"/tasks/create",
+                "form_action": "/tasks/create",
                 "button_text": "Создать",
                 "projects": projects,
                 "users": users,
@@ -217,7 +233,6 @@ async def task_create_post(
             status_code=400,
         )
 
-    # Валидация даты
     due_date_dt = None
     if due_date:
         try:
@@ -232,7 +247,7 @@ async def task_create_post(
                     "request": request,
                     "user": user,
                     "page_title": "Создать задачу",
-                    "form_action": f"/tasks/create",
+                    "form_action": "/tasks/create",
                     "button_text": "Создать",
                     "projects": projects,
                     "users": users,
@@ -254,7 +269,35 @@ async def task_create_post(
     )
 
     task = await ts.create(task_data, task_repository, user_manager)
-    return RedirectResponse(url=f"{task.id}", status_code=302)
+
+
+    await ws_manager.send_personal(
+        user.id,
+        {
+            "type": "task_created",
+            "title": "Задача создана",
+            "message": f"Вы создали задачу: {task.name}",
+            "task_id": task.id,
+            "url": f"/tasks/{task.id}/",
+        },
+    )
+
+    if task.assignee_id:
+        await ws_manager.send_personal(
+            task.assignee_id,
+            {
+                "type": "task_assigned",
+                "title": "Новая задача",
+                "message": f"Вам назначена задача: {task.name}",
+                "task_id": task.id,
+                "url": f"/tasks/{task.id}/",
+            },
+        )
+
+    return RedirectResponse(
+        url=f"/tasks/?notification=created&id={task.id}&name={name}",
+        status_code=303,
+    )
 
 
 @router.get("/{task_id}/edit", response_class=HTMLResponse)
