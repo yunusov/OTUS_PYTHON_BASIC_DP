@@ -178,4 +178,5 @@ def excluded_list() -> list:
         "owner",
         "assignee",
         "creator",
+        "assigned_projects",
     ]
