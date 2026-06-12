@@ -1,15 +1,25 @@
-from fastapi import APIRouter, Form, Request, Depends
+from fastapi import (
+    APIRouter,
+    Form,
+    Query,
+    Request,
+    Depends,
+)
+from fastapi import APIRouter, Form, Query, Request, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
 
+from src.core.ws_manager import ws_manager
+
 from src.core.auth.session_user import get_current_user_from_session
+from src.core.auth.user_manager import UserManager
 from src.core.dependencies import (
     ProjectRepo,
     TaskRepo,
     CommentRepo,
     UserRepo,
 )
-from src.utils.jinja_templates import templates
+from src.routers.api.dependencies.auth.user_manager import get_user_manager
 from src.schemas import (
     UserRead,
     TaskCreate,
@@ -23,10 +33,12 @@ from src.services import (
     UserService,
     CommentService,
 )
+from src.utils.jinja_templates import templates
 from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()
 router = APIRouter(prefix="/tasks")
+
 
 ps = ProjectService()
 ts = TaskService()
@@ -38,18 +50,31 @@ cs = CommentService()
 def index(
     request: Request,
     task_repository: TaskRepo,
+    sort_by: str = Query("name"),
+    sort_dir: str = Query("asc"),
     user: UserRead = Depends(get_current_user_from_session),
 ):
     """
     Отображает список всех задач текущего пользователя.
     """
-    tasks = ts.get_user_tasks(user.id, task_repository)
+    tasks = ts.get_user_tasks(
+        user.id,
+        task_repository,
+        sort_by,
+        sort_dir,
+    )
     context = {
         "request": request,
         "user": user,
         "page_title": "Задачи",
         "tasks": tasks,
-        "info": f"Ваши задачи, {user.fullname}"
+        "show_tab_all": False,
+        "current_sort": sort_by,
+        "current_dir": sort_dir,
+        "info": f"Ваши задачи, {user.fullname}",
+        "show_tab_all": False,
+        "current_sort": sort_by,
+        "current_dir": sort_dir,
     }
     return templates.TemplateResponse(
         request,
@@ -63,6 +88,7 @@ def task_view(
     request: Request,
     task_repository: TaskRepo,
     comment_repository: CommentRepo,
+    project_repository: ProjectRepo,
     task_id: int,
     user: UserRead = Depends(get_current_user_from_session),
 ):
@@ -70,10 +96,14 @@ def task_view(
     Отображает детальную информацию о задаче по ID.
     """
     task = ts.get_by_id(task_id, task_repository)
+    project = None
+    if task and task.project_id:
+        project = ps.get_by_id(task.project_id, project_repository)
     comments = cs.get_by_task_id(task_id, comment_repository)
     context = {
         "task": task,
         "comments": comments,
+        "project": project,
         "user": user,
     }
     return templates.TemplateResponse(
@@ -90,10 +120,33 @@ def task_create_get(
     user_repository: UserRepo,
     user: UserRead = Depends(get_current_user_from_session),
 ):
+    return task_create_form(request, project_repository, user_repository, None, user)
+
+
+@router.get("/create/{project_id}", response_class=HTMLResponse)
+def task_project_create_get(
+    request: Request,
+    project_repository: ProjectRepo,
+    user_repository: UserRepo,
+    project_id: int | None = None,
+    user: UserRead = Depends(get_current_user_from_session),
+):
     """
     Отображает форму создания новой задачи.
     """
-    projects = ps.get_by_creator_id(user.id, project_repository)
+    return task_create_form(
+        request, project_repository, user_repository, project_id, user
+    )
+
+
+def task_create_form(
+    request: Request,
+    project_repository: ProjectRepo,
+    user_repository: UserRepo,
+    project_id: int | None = None,
+    user: UserRead = Depends(get_current_user_from_session),
+):
+    projects = ps.get_by_creator_id(project_repository, user.id)
     users = us.get_all(user_repository)
 
     context = {
@@ -102,6 +155,7 @@ def task_create_get(
         "page_title": "Создать задачу",
         "form_action": f"/tasks/create",
         "button_text": "Создать",
+        "project_id": project_id,
         "projects": projects,
         "users": users,
     }
@@ -113,7 +167,7 @@ def task_create_get(
 
 
 @router.post("/create", response_class=HTMLResponse)
-def task_create_post(
+async def task_create_post(
     request: Request,
     task_repository: TaskRepo,
     project_repository: ProjectRepo,
@@ -127,15 +181,12 @@ def task_create_post(
     status: str = Form(...),
     priority: str = Form(...),
     user: UserRead = Depends(get_current_user_from_session),
+    user_manager: UserManager = Depends(get_user_manager),
 ):
-    """
-    Обрабатывает создание новой задачи из формы.
-    """
-    # Проверка проекта
     if project_id:
         project = ps.get_by_id(project_id, project_repository)
         if not project:
-            projects = ps.get_by_creator_id(user.id, project_repository)
+            projects = ps.get_by_creator_id(project_repository, user.id)
             users = us.get_all(user_repository)
             return templates.TemplateResponse(
                 request,
@@ -144,7 +195,7 @@ def task_create_post(
                     "request": request,
                     "user": user,
                     "page_title": "Создать задачу",
-                    "form_action": f"/tasks/create",
+                    "form_action": "/tasks/create",
                     "button_text": "Создать",
                     "projects": projects,
                     "users": users,
@@ -153,12 +204,11 @@ def task_create_post(
                 status_code=400,
             )
 
-    # Валидация статуса и приоритета
     try:
         status_enum = TaskStatus(status)
         priority_enum = TaskPriority(priority)
     except ValueError as e:
-        projects = ps.get_by_creator_id(user.id, project_repository)
+        projects = ps.get_by_creator_id(project_repository, user.id)
         users = us.get_all(user_repository)
         return templates.TemplateResponse(
             request,
@@ -167,7 +217,7 @@ def task_create_post(
                 "request": request,
                 "user": user,
                 "page_title": "Создать задачу",
-                "form_action": f"/tasks/create",
+                "form_action": "/tasks/create",
                 "button_text": "Создать",
                 "projects": projects,
                 "users": users,
@@ -176,13 +226,12 @@ def task_create_post(
             status_code=400,
         )
 
-    # Валидация даты
     due_date_dt = None
     if due_date:
         try:
             due_date_dt = datetime.fromisoformat(due_date)
         except ValueError:
-            projects = ps.get_by_creator_id(user.id, project_repository)
+            projects = ps.get_by_creator_id(project_repository, user.id)
             users = us.get_all(user_repository)
             return templates.TemplateResponse(
                 request,
@@ -191,7 +240,7 @@ def task_create_post(
                     "request": request,
                     "user": user,
                     "page_title": "Создать задачу",
-                    "form_action": f"/tasks/create",
+                    "form_action": "/tasks/create",
                     "button_text": "Создать",
                     "projects": projects,
                     "users": users,
@@ -212,8 +261,36 @@ def task_create_post(
         creator_id=user.id,
     )
 
-    task = ts.create(task_data, task_repository)
-    return RedirectResponse(url=request.url_for("tasks"), status_code=303)
+    task = await ts.create(task_data, task_repository, user_manager)
+    return RedirectResponse(url=f"{task.id}", status_code=302)
+
+    await ws_manager.send_personal(
+        user.id,
+        {
+            "type": "task_created",
+            "title": "Задача создана",
+            "message": f"Вы создали задачу: {task.name}",
+            "task_id": task.id,
+            "url": f"/tasks/{task.id}/",
+        },
+    )
+
+    if task.assignee_id:
+        await ws_manager.send_personal(
+            task.assignee_id,
+            {
+                "type": "task_assigned",
+                "title": "Новая задача",
+                "message": f"Вам назначена задача: {task.name}",
+                "task_id": task.id,
+                "url": f"/tasks/{task.id}/",
+            },
+        )
+
+    return RedirectResponse(
+        url=f"/tasks/?notification=created&id={task.id}&name={name}",
+        status_code=303,
+    )
 
 
 @router.get("/{task_id}/edit", response_class=HTMLResponse)
@@ -243,7 +320,7 @@ def task_edit_get(
 
 
 @router.post("/{task_id}/edit", response_class=HTMLResponse)
-def task_edit_post(
+async def task_edit_post(
     request: Request,
     task_repository: TaskRepo,
     task_id: int,
@@ -256,6 +333,7 @@ def task_edit_post(
     status: str = Form(...),
     priority: str = Form(...),
     user: UserRead = Depends(get_current_user_from_session),
+    user_manager: UserManager = Depends(get_user_manager),
 ):
     """
     Обрабатывает сохранение изменений задачи из формы.
@@ -292,5 +370,5 @@ def task_edit_post(
         due_date=datetime.fromisoformat(due_date) if due_date else None,
     )
 
-    ts.modify(task_id, task_update, task_repository)
+    await ts.modify(task_id, task_update, task_repository, user_manager)
     return RedirectResponse(url=request.url_for("tasks"), status_code=303)

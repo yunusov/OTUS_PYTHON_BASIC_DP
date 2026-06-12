@@ -3,6 +3,18 @@
 {% block title %}Задача {{ task.name }} - TaskFlow{% endblock %}
 
 {% block content %}
+<style>
+    .index-page .card {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+    }
+    .comment-item:target {
+        background-color: rgba(255, 193, 7, 0.1);
+        border-radius: 8px;
+        padding: 12px;
+        transition: background-color 0.5s ease;
+    }
+
+</style>
 <div class="container py-4 index-page">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h1 class="taskflow-title mb-0">{{ task.name }}</h1>
@@ -18,7 +30,8 @@
                 <div class="col-md-6">
                     <p><strong>Название:</strong> {{ task.name }}</p>
                     <p><strong>Описание:</strong> {{ task.description or "Нет" }}</p>
-                    <p><strong>Проект:</strong> {{ task.project_id if task.project_id else "Без проекта" }}</p>
+                    <p><strong>Проект:</strong> {% if task.project_id %} <a href="/projects/{{project.id}}/">{{project.name}}</a> {% else %} "Без проекта" 
+                    {% endif %}</p>
                 </div>
                 <div class="col-md-6">
                     <p><strong>Статус:</strong>
@@ -81,7 +94,7 @@
                         {% else %}
                             <a href="/user/{{ comment.creator_id }}/home/" class="text-primary fw-bold">{{ comment.creator }}</a>
                         {% endif %}
-                        <span class="text-muted ms-3 small">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                        <a href="/comments/{{ comment.id }}" class="text-muted ms-3 small">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</a>
                     </div>
 
                     <!-- Текст комментария (показывается, когда не редактируем) -->

@@ -2,8 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from src.core.auth.fastapi_users import fastapi_users
 from src.core.config import settings
-from src.core.dependencies import CommentRepo
+from src.core.dependencies import CommentRepo, TaskRepo, UserRepo
+from src.core.auth.user_manager import UserManager
 from src.models.user import UserOrm
+from src.routers.api.dependencies.auth.user_manager import get_user_manager
 from src.schemas import (
     CommentCreate,
     CommentRead,
@@ -23,13 +25,16 @@ router = APIRouter(prefix=settings.api.v1.comments, tags=["Comments"])
 
 
 @router.post("/", response_model=CommentRead)
-def create_comment(
+async def create_comment(
     comment: CommentCreate,
     repository: CommentRepo,
+    tr: TaskRepo,
+    ur: UserRepo,
     user: UserOrm = Depends(current_active_user),  # ← только авторизированный
+    user_manager: UserManager = Depends(get_user_manager),
 ) -> CommentRead:
     """Создать комментарий"""
-    return CommentService().create(comment, repository)
+    return await CommentService().create(comment, repository, user_manager, tr, ur)
 
 
 @router.put("/{comment_id}", response_model=CommentRead)

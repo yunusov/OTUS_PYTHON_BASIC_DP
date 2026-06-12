@@ -10,8 +10,10 @@ from src.repositories import (
     TaskRepository,
     ProjectRepository,
     CommentRepository,
+    EmailRepository,
 )
 from src.utils.loguru_config import AppLogger
+
 
 logger = AppLogger().get_logger()
 
@@ -56,3 +58,10 @@ def get_comment_repository(session: DbSession):
 
 
 CommentRepo = Annotated[CommentRepository, Depends(get_comment_repository)]
+
+
+def get_email_repository(session: DbSession):
+    return EmailRepository(session)
+
+
+EmailRepo = Annotated[EmailRepository, Depends(get_email_repository)]

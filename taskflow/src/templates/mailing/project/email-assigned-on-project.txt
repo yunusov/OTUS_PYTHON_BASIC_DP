@@ -1,0 +1,7 @@
+Dear {{ user.username }},\n
+
+You have been assigned on project {{ project.name }}. Welcome aboard!\n
+
+------
+Best regards,\n
+Taskflow Team\n

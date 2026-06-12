@@ -1,0 +1,12 @@
+Dear {{ user.username }},\n
+
+New reply has been added on task {{ task.name }}:
+
+> {{ comment.content }}
+
+
+Write your comment in reply to this email. Please do not change subject!
+
+------
+Best regards,\n
+Taskflow Team\n

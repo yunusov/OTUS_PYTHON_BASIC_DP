@@ -1,0 +1,14 @@
+{% extends 'mailing/base.html' %}
+
+{% block title %}
+    New assignment to project {{ project.name }}
+{% endblock %}
+
+{% block content %}
+    <p>
+        Dear, {{ user.fullname }}!
+    </p>
+    <p>
+        You have been assigned on project <a href="{{ server_url }}/projects/{{ project.id }}">{{ project.name }}</a>. Welcome aboard!
+    </p>
+{% endblock %}

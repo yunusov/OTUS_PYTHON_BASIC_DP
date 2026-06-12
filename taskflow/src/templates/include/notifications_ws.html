@@ -1,0 +1,37 @@
+<script>
+    (function () {
+        const userId = {{ user.id if user else 'null' }};
+        if (!userId) return;
+
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const ws = new WebSocket(`${wsProtocol}://${window.location.host}/ws/notifications/${userId}`);
+
+        ws.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+
+            const el = document.createElement('div');
+            el.className = 'alert alert-success shadow alert-dismissible fade show';
+            el.style.position = 'fixed';
+            el.style.top = '20px';
+            el.style.right = '20px';
+            el.style.zIndex = '20000';
+            el.style.minWidth = '320px';
+            el.style.maxWidth = '420px';
+            el.setAttribute('role', 'alert');
+
+            el.innerHTML = `
+                <div><strong>${data.title || 'Уведомление'}</strong></div>
+                <div>${data.message || ''}</div>
+                ${data.url ? `
+                    <div class="mt-2">
+                        <a href="${data.url}" class="alert-link">Открыть</a>
+                    </div>
+                ` : ''}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 5000);
+        };
+    })();
+</script>

@@ -1,4 +1,5 @@
-from src.core.dependencies import CommentRepo
+from src.core.dependencies import CommentRepo, TaskRepo, UserRepo
+from src.core.auth.user_manager import UserManager
 from src.models import CommentOrm, UserOrm, TaskOrm
 from src.schemas.comment import (
     CommentCreate,
@@ -12,10 +13,13 @@ logger = AppLogger().get_logger()
 
 class CommentService:
 
-    def create(
+    async def create(
         self,
         comment_data: CommentCreate,
         repository: CommentRepo,
+        user_manager: UserManager,
+        tr: TaskRepo,
+        ur: UserRepo,
     ) -> CommentRead:
         comment_orm = CommentOrm(**comment_data.model_dump())
         creator = repository.session.get(UserOrm, comment_data.creator_id)
@@ -29,6 +33,8 @@ class CommentService:
 
         repository.create(comment_orm)
         repository.save()
+
+        await user_manager.on_comment(comment_orm, tr, ur)
         return CommentRead.model_validate(comment_orm)
 
     def modify(
@@ -70,8 +76,10 @@ class CommentService:
         self,
         comment_id: int,
         repository: CommentRepo,
-    ) -> CommentRead:
+    ) -> CommentRead | None:
         comment = repository.get_by_id(comment_id)
+        if comment is None:
+            return None
         return CommentRead.model_validate(comment, from_attributes=True).model_copy(
             update={"creator": comment.creator.fullname if comment else ""}
         )

@@ -22,30 +22,81 @@
 </style>
 
 <div class="container py-4 index-page">
+    {% block project_content %}{% endblock %}
+
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h1 class="taskflow-title mb-0">Задачи</h1>
         <div>
-            <a href="/tasks/create" class="btn btn-primary">
-                + Создать задачу
-            </a>
+            {% if project %}
+                <a href="/projects/{{ project.id }}/tasks/create" class="btn btn-primary">
+                + Добавить задачу
+                </a>
+            {% else %}
+                <a href="/tasks/create" class="btn btn-primary">
+                    + Создать задачу
+                </a>
+            {% endif %}
         </div>
     </div>
 
-    {% if user %}
+    {% if info %}
     <div class="alert alert-dark">
         <p class="mb-2">{{ info }}</p>
     </div>
     {% endif %}
 
+    <ul class="nav nav-tabs mb-3">
+        {% if show_tab_mine != False %}
+            <li class="nav-item">
+                <a class="nav-link {% if tab != 'all' %}active{% endif %}"
+                href="{% if project %}/projects/{{ project.id }}{% else %}/tasks{% endif %}/">
+                Мои задачи
+                </a>
+            </li>
+        {% endif %}
+
+        {% if show_tab_all != False %}
+            <li class="nav-item">
+                <a class="nav-link {% if tab == 'all' %}active{% endif %}"
+                href="/projects/{% if project %}{{ project.id }}{% endif %}/?tab=all">
+                Все задачи
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+
     {% if tasks %}
     <table class="table table-light">
         <thead>
             <tr>
-                <th scope="col">Название задачи</th>
-                <th scope="col">Проект</th>
-                <th scope="col">Статус</th>
-                <th scope="col">Приоритет</th>
-                <th scope="col">Дедлайн</th>
+                <th scope="col"><a href="?sort_by=name&sort_dir={% if current_sort == 'name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&tab={{tab}}{% if search_str %}&search_str={{search_str}}{% endif%}"
+                    class="text-decoration-none text-dark">
+                        Название
+                        {% if current_sort == 'name' %}
+                            <span class="ms-1">{{ '▲' if current_dir == 'asc' else '▼' }}</span>
+                        {% endif %}
+                </a></th>
+                <th scope="col"><a href="?sort_by=status&sort_dir={% if current_sort == 'status' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&tab={{tab}}{% if search_str %}&search_str={{search_str}}{% endif%}"
+                    class="text-decoration-none text-dark">
+                        Статус
+                        {% if current_sort == 'status' %}
+                            <span class="ms-1">{{ '▲' if current_dir == 'asc' else '▼' }}</span>
+                        {% endif %}
+                </a></th>
+                <th scope="col"><a href="?sort_by=priority&sort_dir={% if current_sort == 'priority' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&tab={{tab}}{% if search_str %}&search_str={{search_str}}{% endif%}"
+                    class="text-decoration-none text-dark">
+                        Приоритет
+                        {% if current_sort == 'priority' %}
+                            <span class="ms-1">{{ '▲' if current_dir == 'asc' else '▼' }}</span>
+                        {% endif %}
+                </a></th>
+                <th scope="col"><a href="?sort_by=due_date&sort_dir={% if current_sort == 'due_date' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&tab={{tab}}{% if search_str %}&search_str={{search_str}}{% endif%}"
+                    class="text-decoration-none text-dark">
+                        Дедлайн
+                        {% if current_sort == 'due_date' %}
+                            <span class="ms-1">{{ '▲' if current_dir == 'asc' else '▼' }}</span>
+                        {% endif %}
+                </a></th>
                 <th scope="col">Действия</th>
             </tr>
         </thead>
@@ -53,7 +104,6 @@
             {% for task in tasks %}
             <tr>
                 <th scope="row"><a href="/tasks/{{ task.id }}/">{{ task.name }}</a></th>
-                <td>{{ task.project_id if task.project_id else "Без проекта" }}</td>
                 <td>
                     {% if task.status == 'todo' %}
                         <span class="badge bg-secondary">Сделать</span>
@@ -92,4 +142,31 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+const url = new URL(window.location.href);
+
+if (url.searchParams.get('notification') === 'created') {
+    const id = url.searchParams.get('id');
+    const name = url.searchParams.get('name');
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.top = '20px';
+    div.style.right = '20px';
+    div.style.background = '#4CAF50';
+    div.style.color = 'white';
+    div.style.padding = '16px 24px';
+    div.style.borderRadius = '8px';
+    div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    div.style.minWidth = '320px';
+    div.style.zIndex = '10000';
+    div.innerHTML = '<strong>✅ Задача создана!</strong><br>Задача \'' + name + '\' создана успешно<br><a href="/tasks/' + id + '/' + '" style="color: white; text-decoration: underline;">Посмотреть</a>';
+    document.body.appendChild(div);
+    setTimeout(function() { div.remove(); }, 5000);
+    url.searchParams.delete('notification');
+    url.searchParams.delete('id');
+    url.searchParams.delete('name');
+    window.history.replaceState(null, '', url);
+}
+</script>
 {% endblock %}

@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from src.core.dependencies import TaskRepo
+from src.core.auth.user_manager import UserManager
 from src.models import TaskOrm
 from src.schemas import TaskCreate, TaskUpdate, TaskRead
 from src.utils.loguru_config import AppLogger
@@ -8,7 +11,19 @@ logger = AppLogger().get_logger()
 
 class TaskService:
 
-    def create(self, task_data: TaskCreate, repository: TaskRepo) -> TaskOrm:
+    sort_map = {
+        "name": lambda p: p.name.lower(),
+        "status": lambda p: p.status,
+        "priority": lambda p: p.priority,
+        "due_date": lambda p: p.due_date if p.due_date else datetime(2100, 1, 1),
+    }
+
+    async def create(
+        self,
+        task_data: TaskCreate,
+        repository: TaskRepo,
+        user_manager: UserManager,
+    ) -> TaskRead:
         """Создать задачу"""
         task = TaskOrm(
             name=task_data.name,
@@ -25,13 +40,15 @@ class TaskService:
         repository.session.add(task)
         repository.session.commit()
         repository.session.refresh(task)
-        return task
+        await user_manager.on_task_assign(task)
+        return TaskRead.model_validate(task, from_attributes=True)
 
-    def modify(
+    async def modify(
         self,
         task_id: int,
         task_data: TaskUpdate,
         repository: TaskRepo,
+        user_manager: UserManager,
     ) -> TaskRead:
         """Изменение задачи (аналог ProjectService.modify)"""
         task_orm = repository.get_by_id(task_id)
@@ -55,6 +72,8 @@ class TaskService:
                 value = getattr(task_data, field)
                 if value is not None:
                     setattr(task_orm, field, value)
+                    if field == "assignee_id":
+                        await user_manager.on_task_assign(task_orm)
 
         repository.save()
         logger.info(f"Task '{task_orm.id}' updated")
@@ -85,10 +104,16 @@ class TaskService:
             }
         )
 
-    def get_user_tasks(self, user_id: int, repository: TaskRepo) -> list[TaskRead]:
+    def get_user_tasks(
+        self,
+        user_id: int,
+        repository: TaskRepo,
+        sort_by: str = "name",
+        sort_dir: str = "desc",
+    ) -> list[TaskRead]:
         """Получить все задачи пользователя (как создатель или исполнитель)"""
         tasks = repository.get_by_user(user_id)
-        return [
+        result = [
             TaskRead.model_validate(task, from_attributes=True).model_copy(
                 update={
                     "creator": task.creator.fullname if task.creator else "",
@@ -97,12 +122,20 @@ class TaskService:
             )
             for task in tasks
         ]
+        key_func = self.sort_map[sort_by]
+        result.sort(key=key_func, reverse=(sort_dir == "desc"))
+        return result
 
     def get_by_project_id(
-        self, project_id: int, repository: TaskRepo
+        self,
+        project_id: int,
+        repository: TaskRepo,
+        user_id: int | None,
+        sort_by: str = "name",
+        sort_dir: str = "desc",
     ) -> list[TaskRead]:
-        tasks = repository.get_by_project(project_id)
-        return [
+        tasks = repository.get_by_project(project_id, user_id)
+        result = [
             TaskRead.model_validate(task, from_attributes=True).model_copy(
                 update={
                     "creator": task.creator.fullname if task.creator else "",
@@ -111,11 +144,20 @@ class TaskService:
             )
             for task in tasks
         ]
+        key_func = self.sort_map[sort_by]
+        result.sort(key=key_func, reverse=(sort_dir == "desc"))
+        return result
 
-    def get_tasks_by_str(self, search_str: str, repository: TaskRepo) -> list[TaskRead]:
+    def get_tasks_by_str(
+        self,
+        search_str: str,
+        repository: TaskRepo,
+        sort_by: str = "name",
+        sort_dir: str = "desc",
+    ) -> list[TaskRead]:
         """Получить все задачи пользователя (как создатель или исполнитель)"""
         tasks = repository.get_by_str(search_str)
-        return [
+        result = [
             TaskRead.model_validate(task, from_attributes=True).model_copy(
                 update={
                     "creator": task.creator.fullname if task.creator else "",
@@ -124,3 +166,6 @@ class TaskService:
             )
             for task in tasks
         ]
+        key_func = self.sort_map[sort_by]
+        result.sort(key=key_func, reverse=(sort_dir == "desc"))
+        return result

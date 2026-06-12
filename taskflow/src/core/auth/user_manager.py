@@ -8,9 +8,21 @@ from fastapi_users import (
 from fastapi_users.db import BaseUserDatabase
 
 from src.core.config import settings
-from src.mailing.send_verification_email import send_verification_email
-from src.mailing.send_confirmed_email import send_confirmed_email
-from src.models import UserOrm
+from src.core.dependencies import TaskRepo, UserRepo
+from src.mailing import (
+    send_verification_email,
+    send_confirmed_email,
+    send_assigned_on_project_email,
+    send_assigned_task_email,
+    send_comment_email,
+)
+from src.models import (
+    ProjectOrm,
+    TaskOrm,
+    UserOrm,
+    CommentOrm,
+)
+
 # from utils.webhooks.user import send_new_user_notification
 from src.utils.loguru_config import AppLogger
 
@@ -100,3 +112,59 @@ class UserManager(IntegerIDMixin, BaseUserManager[UserOrm, int]):
             send_confirmed_email,
             user=user,
         )
+
+    async def on_project_assign(
+        self,
+        users: list[UserOrm],
+        project: ProjectOrm,
+    ):
+        for user in users:
+            logger.warning(
+                "User '{}' has been assigned on project '{}'",
+                user.id,
+                project.id,
+            )
+            self.background_tasks.add_task(
+                send_assigned_on_project_email,
+                user=user,
+                project=project,
+            )
+
+    async def on_task_assign(
+        self,
+        task: TaskOrm,
+    ):
+        if task.assignee_id:
+            user = await self.get(task.assignee_id)
+            logger.warning(
+                "Task '{}' has been assigned on user '{}'",
+                task.id,
+                user.id,
+            )
+            self.background_tasks.add_task(
+                send_assigned_task_email,
+                user=user,
+                task=task,
+            )
+
+    async def on_comment(
+        self,
+        comment: CommentOrm,
+        tr: TaskRepo,
+        ur: UserRepo,
+    ):
+        task = tr.get_by_id(comment.task_id)
+        users = ur.get_users_for_comment_email(comment.id, comment.creator_id)
+        logger.warning(
+            "Comment '{}' has been left on task {}",
+            comment.id,
+            task
+        )
+        if task:
+            for user in users:
+                self.background_tasks.add_task(
+                    send_comment_email,
+                    user=user,
+                    task=task,
+                    comment=comment,
+                )

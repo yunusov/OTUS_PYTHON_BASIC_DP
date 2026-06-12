@@ -5,6 +5,7 @@ from .task import TaskOrm
 from .access_token import AccessTokenOrm
 from .user_project import UserProjectOrm
 from .comment import CommentOrm
+from .email import IncomingEmailOrm
 
 from sqlalchemy.orm import configure_mappers
 
@@ -18,4 +19,5 @@ __all__ = [
     "TaskOrm",
     "UserProjectOrm",
     "CommentOrm",
+    "IncomingEmailOrm",
 ]

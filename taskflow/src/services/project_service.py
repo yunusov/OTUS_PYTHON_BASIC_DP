@@ -1,5 +1,9 @@
+from fastapi import Depends
+
+from src.core.auth.user_manager import UserManager
 from src.core.dependencies import ProjectRepo
 from src.models import ProjectOrm, UserProjectOrm, UserOrm
+from src.routers.api.dependencies.auth.user_manager import get_user_manager
 from src.schemas.project import (
     ProjectCreate,
     ProjectRead,
@@ -29,11 +33,12 @@ class ProjectService:
         repository.save()
         return ProjectRead.model_validate(project_orm)
 
-    def add_members(
+    async def add_members(
         self,
         project_id: int,
         data: ProjectMembersAdd,
         repository: ProjectRepo,
+        user_manager: UserManager,
     ) -> ProjectRead:
         project_orm = repository.get_by_id(project_id)
         if project_orm is None:
@@ -60,7 +65,7 @@ class ProjectService:
         if missing_user_ids:
             raise ValueError(f"Пользователи с ID={sorted(missing_user_ids)} не найдены")
 
-        project_orm.user_projects.extend(UserProjectOrm(user=user) for user in users)
+        await self.user_projects_extend(project_orm, users, user_manager)
 
         repository.save()
         return ProjectRead.model_validate(project_orm)
@@ -111,16 +116,27 @@ class ProjectService:
 
     def get_by_creator_id(
         self,
-        owner_id: int,
         repository: ProjectRepo,
+        owner_id: int | None = None,
+        sort_by: str = "name",
+        sort_dir: str = "desc",
     ) -> list[ProjectRead]:
         projects = repository.get_by_creator_id(owner_id)
-        return [
+        result = [
             ProjectRead.model_validate(project, from_attributes=True).model_copy(
                 update={"owner": project.creator.fullname}
             )
             for project in projects
         ]
+        sort_map = {
+            "name": lambda p: p.name.lower(),
+            "owner": lambda p: p.owner.lower(),
+            "project_type": lambda p: p.project_type,
+            "created_at": lambda p: p.created_at,
+        }
+        key_func = sort_map[sort_by]
+        result.sort(key=key_func, reverse=(sort_dir == "desc"))
+        return result
 
     def get_by_id(
         self,
@@ -134,3 +150,13 @@ class ProjectService:
         return ProjectRead.model_validate(project, from_attributes=True).model_copy(
             update={"owner": project.creator.fullname}
         )
+
+    async def user_projects_extend(
+        self,
+        project: ProjectOrm | None,
+        users: list[UserOrm],
+        user_manager: UserManager,
+    ):
+        if project:
+            project.user_projects.extend(UserProjectOrm(user=user) for user in users)
+            await user_manager.on_project_assign(users, project)

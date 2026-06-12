@@ -1,7 +1,7 @@
 from sqlalchemy import and_, exists, or_, select, text, true
 from sqlalchemy.orm import joinedload
 
-from src.models import UserOrm, UserProjectOrm
+from src.models import UserOrm, CommentOrm, TaskOrm
 from src.utils.loguru_config import AppLogger
 from .base import BaseRepository
 
@@ -89,6 +89,28 @@ class UserRepository(BaseRepository):
                 and_(
                     UserOrm.is_verified == true(),
                     UserOrm.user_projects.any(project_id=project_id),
+                )
+            )
+        )
+        return list(result.scalars().unique().all())
+
+    def get_users_for_comment_email(
+        self, comment_id: int, user_id: int
+    ) -> list[UserOrm]:
+        """Получить пользователей для отправки email"""
+        q1 = select(CommentOrm.creator_id).where(CommentOrm.id == comment_id)
+        task_subq = select(CommentOrm.task_id).where(CommentOrm.id == comment_id).scalar_subquery()
+        q2 = select(CommentOrm.creator_id).where(CommentOrm.task_id == task_subq)
+        q3 = select(TaskOrm.assignee_id).where(TaskOrm.id == task_subq)
+        union_subq = q1.union_all(q2, q3).subquery()
+        
+        # Основной запрос
+        result = self.session.execute(
+            select(UserOrm)
+            .where(
+                and_(
+                    UserOrm.id.in_(select(union_subq.c.creator_id)),
+                    UserOrm.id != user_id,
                 )
             )
         )

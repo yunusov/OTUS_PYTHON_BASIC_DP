@@ -3,120 +3,123 @@
 {% block title %}TaskFlow{% endblock %}
 
 {% block content %}
-<div class="container py-4 index-page">
-    <!-- Логотип + Название TaskFlow слева -->
-    <div class="d-flex align-items-center gap-3 mb-4">
-        <img src="{{ url_for('images', path='favicon.png') }}"
-             alt="TaskFlow Logo"
-             style="width: 60px; height: 60px; object-fit: contain;">
+    <div class="container py-4 index-page">
+        <!-- Логотип + Название TaskFlow слева -->
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <img src="{{ url_for('images', path='favicon.png') }}"
+                 alt="TaskFlow Logo"
+                 style="width: 60px; height: 60px; object-fit: contain;">
 
-        <h1 class="taskflow-title mb-0">TaskFlow</h1>
-    </div>
+            <h1 class="taskflow-title mb-0">TaskFlow</h1>
+        </div>
 
-    {% if user %}
-        <!-- Приветствие + Профиль + Выход -->
-        <div class="bg-white rounded-4 shadow-sm border p-4 p-md-5 mb-4">
-            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-                <div>
-                    <h2 class="h4 fw-bold text-dark mb-2">
-                        Добро пожаловать, {{ user.fullname }}!
-                    </h2>
-                    <p class="text-muted mb-0">Ваши задачи и проекты</p>
-                </div>
-                <div class="d-flex gap-2 flex-shrink-0">
-                    <a href="/user/home" class="btn btn-outline-primary">
-                        <span class="me-1">⚙️</span> Профиль
-                    </a>
-                    <a href="/logout" class="btn btn-outline-danger">
-                        <span class="me-1">🚪</span> Выйти
-                    </a>
+        {% if user %}
+            <!-- Приветствие + Профиль + Выход -->
+            <div class="bg-white rounded-4 shadow-sm border p-4 p-md-5 mb-4">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                    <div>
+                        <h2 class="h4 fw-bold text-dark mb-2">
+                            Добро пожаловать, {{ user.fullname }}!
+                        </h2>
+                        <p class="text-muted mb-0">Ваши задачи и проекты</p>
+                    </div>
+                    <div class="d-flex gap-2 flex-shrink-0">
+                        <a href="/user/home" class="btn btn-outline-primary">
+                            <span class="me-1">⚙️</span> Профиль
+                        </a>
+                        <a href="/logout" class="btn btn-outline-danger">
+                            <span class="me-1">🚪</span> Выйти
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Совет дня -->
-        <div class="bg-light text-dark rounded-4 shadow-sm p-4 p-md-5 mb-4 border">
-            <h3 class="h5 fw-bold mb-2">💡 Совет дня</h3>
-            <p class="mb-0">
-                {{ random_tip }}
-            </p>
-        </div>
+            <!-- Совет дня -->
+            <div class="bg-light text-dark rounded-4 shadow-sm p-4 p-md-5 mb-4 border">
+                <h3 class="h5 fw-bold mb-2">💡 Совет дня</h3>
+                <p class="mb-0">
+                    {{ random_tip }}
+                </p>
+            </div>
 
-        <!-- Карточки разделов -->
-        <div class="d-flex flex-nowrap overflow-auto gap-3 pb-2">
-            <a href="/tasks" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <div class="text-muted small mb-1">Раздел</div>
-                                <h2 class="h5 fw-bold mb-0 text-dark">Мои задачи</h2>
+            <!-- Карточки разделов -->
+            <div class="d-flex flex-nowrap overflow-auto gap-3 pb-2">
+                <a href="/tasks" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <div class="text-muted small mb-1">Раздел</div>
+                                    <h2 class="h5 fw-bold mb-0 text-dark">Мои задачи</h2>
+                                </div>
+                                <div class="fs-3">📋</div>
                             </div>
-                            <div class="fs-3">📋</div>
+                            <p class="text-muted mb-0">Просмотр, фильтрация и управление задачами.</p>
                         </div>
-                        <p class="text-muted mb-0">Просмотр, фильтрация и управление задачами.</p>
                     </div>
-                </div>
-            </a>
+                </a>
 
-            <a href="/projects" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
-                <div class="card border-0 shadow-sm rounded-4 h-100">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <div class="text-muted small mb-1">Раздел</div>
-                                <h2 class="h5 fw-bold mb-0 text-dark">Мои проекты</h2>
+                <a href="/projects" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <div class="text-muted small mb-1">Раздел</div>
+                                    <h2 class="h5 fw-bold mb-0 text-dark">Мои проекты</h2>
+                                </div>
+                                <div class="fs-3">🗂️</div>
                             </div>
-                            <div class="fs-3">🗂️</div>
+                            <p class="text-muted mb-0">Список проектов, статусы и участники.</p>
                         </div>
-                        <p class="text-muted mb-0">Список проектов, статусы и участники.</p>
                     </div>
-                </div>
-            </a>
+                </a>
 
-            <a href="/projects/create" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
-                <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <div class="text-white-50 small mb-1">Действие</div>
-                                <h2 class="h5 fw-bold mb-0 text-white">Создать проект</h2>
+                <a href="/projects/create" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <div class="text-white-50 small mb-1">Действие</div>
+                                    <h2 class="h5 fw-bold mb-0 text-white">Создать проект</h2>
+                                </div>
+                                <div class="fs-3">➕</div>
                             </div>
-                            <div class="fs-3">➕</div>
+                            <p class="text-white-50 mb-0">Добавить новый проект и начать работу.</p>
                         </div>
-                        <p class="text-white-50 mb-0">Добавить новый проект и начать работу.</p>
                     </div>
-                </div>
-            </a>
+                </a>
 
-            <a href="/tasks/create" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
-                <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <div>
-                                <div class="text-white-50 small mb-1">Действие</div>
-                                <h2 class="h5 fw-bold mb-0 text-white">Создать задачу</h2>
+                <a href="/tasks/create" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <div class="text-white-50 small mb-1">Действие</div>
+                                    <h2 class="h5 fw-bold mb-0 text-white">Создать задачу</h2>
+                                </div>
+                                <div class="fs-3">📝</div>
                             </div>
-                            <div class="fs-3">📝</div>
+                            <p class="text-white-50 mb-0">Быстро добавить новую задачу.</p>
                         </div>
-                        <p class="text-white-50 mb-0">Быстро добавить новую задачу.</p>
                     </div>
-                </div>
-            </a>
-        </div>
+                </a>
+            </div>
+        {% else %}
+            <!-- Гость: без фоновой картинки внутри контейнера -->
+            <div class="bg-white rounded-4 shadow-sm border p-4 p-md-5 mb-4">
+                <h1 class="h3 fw-bold text-dark mb-2">TaskFlow</h1>
+                <p class="text-muted mb-3">
+                    Залогинься, чтобы видеть свои задачи и проекты.
+                </p>
 
-    {% else %}
-        <!-- Гость: без фоновой картинки внутри контейнера -->
-        <div class="bg-white rounded-4 shadow-sm border p-4 p-md-5 mb-4">
-            <h1 class="h3 fw-bold text-dark mb-2">TaskFlow</h1>
-            <p class="text-muted mb-3">
-                Залогинься, чтобы видеть свои задачи и проекты.
-            </p>
-
-            <a href="/auth/login" class="btn btn-primary">
-                Войти
-            </a>
-        </div>
-    {% endif %}
-</div>
+                <a href="/auth/login" class="btn btn-primary">
+                    Войти
+                </a>
+            </div>
+        {% endif %}
+    </div>
 {% endblock %}
+
+{% if user %}
+    {% include 'include/notifications_ws.html' %}
+{% endif %}

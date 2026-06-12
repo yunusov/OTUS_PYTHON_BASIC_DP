@@ -1,8 +1,10 @@
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
+
 from .base import BaseRepository
-from src.models import CommentOrm, UserOrm
+from src.models import CommentOrm
+from src.schemas.comment import CommentCreate
 from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()
@@ -40,3 +42,7 @@ class CommentRepository(BaseRepository):
         )
         comments = result.scalars().all()
         return list(comments)
+
+    def add_comment(self, comment: CommentCreate):
+        """Добавление комментария"""
+        self.create(**comment.model_dump())

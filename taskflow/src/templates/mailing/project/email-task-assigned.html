@@ -1,0 +1,17 @@
+{% extends 'mailing/base.html' %}
+
+{% block title %}
+    [Task-{{ task.id }}] New task assignment '{{ task.name }}'
+{% endblock %}
+
+{% block content %}
+    <p>
+        Dear, {{ user.fullname }}!
+    </p>
+    <p>
+        Task <a href="{{ server_url }}/tasks/{{ task.id }}">{{ task.name}}</a> have been assigned on you</a>.
+    </p>
+    <p>
+        <i>Write "+inp" your comment in reply to this email for change status task to "IN_PROGRESS". Please do not change subject!</i>
+    </p>
+{% endblock %}
