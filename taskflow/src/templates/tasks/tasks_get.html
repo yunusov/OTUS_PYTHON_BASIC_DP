@@ -92,4 +92,33 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+const url = new URL(window.location.href);
+console.log('JavaScript работает! URL:', url.href);
+console.log('notification param:', url.searchParams.get('notification'));
+if (url.searchParams.get('notification') === 'created') {
+    console.log('✅ Показываем уведомление создателя!');
+    const id = url.searchParams.get('id');
+    const name = url.searchParams.get('name');
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.top = '20px';
+    div.style.right = '20px';
+    div.style.background = '#4CAF50';
+    div.style.color = 'white';
+    div.style.padding = '16px 24px';
+    div.style.borderRadius = '8px';
+    div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    div.style.minWidth = '320px';
+    div.style.zIndex = '10000';
+    div.innerHTML = '<strong>✅ Задача создана!</strong><br>Задача \'' + name + '\' создана успешно<br><a href="/tasks/' + id + '/' + '" style="color: white; text-decoration: underline;">Посмотреть</a>';
+    document.body.appendChild(div);
+    setTimeout(function() { div.remove(); }, 5000);
+    url.searchParams.delete('notification');
+    url.searchParams.delete('id');
+    url.searchParams.delete('name');
+    window.history.replaceState(null, '', url);
+}
+</script>
 {% endblock %}

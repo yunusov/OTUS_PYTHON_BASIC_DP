@@ -1,6 +1,8 @@
-from fastapi import APIRouter, Form, Request, Depends
+from fastapi import APIRouter, Form, Request, Depends, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
+from typing import Dict
+import json
 
 from src.core.auth.session_user import get_current_user_from_session
 from src.core.dependencies import (
@@ -28,6 +30,9 @@ from src.utils.loguru_config import AppLogger
 logger = AppLogger().get_logger()
 router = APIRouter(prefix="/tasks")
 
+# Глобальное хранение подключений WebSocket
+connected_users: Dict[int, WebSocket] = {}
+
 ps = ProjectService()
 ts = TaskService()
 us = UserService()
@@ -49,7 +54,7 @@ def index(
         "user": user,
         "page_title": "Задачи",
         "tasks": tasks,
-        "info": f"Ваши задачи, {user.fullname}"
+        "info": f"Ваши задачи, {user.fullname}",
     }
     return templates.TemplateResponse(
         request,
@@ -213,7 +218,10 @@ def task_create_post(
     )
 
     task = ts.create(task_data, task_repository)
-    return RedirectResponse(url=request.url_for("tasks"), status_code=303)
+
+    return RedirectResponse(
+        url=f"/tasks/?notification=created&id={task.id}&name={name}", status_code=303
+    )
 
 
 @router.get("/{task_id}/edit", response_class=HTMLResponse)
@@ -294,3 +302,6 @@ def task_edit_post(
 
     ts.modify(task_id, task_update, task_repository)
     return RedirectResponse(url=request.url_for("tasks"), status_code=303)
+
+
+# WebSocket удален (не нужен для простого уведомления)
