@@ -1,4 +1,12 @@
-from fastapi import APIRouter, Form, Request, Depends, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Form,
+    Query,
+    Request,
+    Depends,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
 from typing import Dict
@@ -153,6 +161,7 @@ def task_create_form(
         context,
     )
 
+
 @router.post("/create", response_class=HTMLResponse)
 async def task_create_post(
     request: Request,
@@ -276,8 +285,6 @@ async def task_create_post(
         url=f"/tasks/?notification=created&id={task.id}&name={name}",
         status_code=303,
     )
-
-
 
 
 @router.get("/{task_id}/edit", response_class=HTMLResponse)
