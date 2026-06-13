@@ -3,6 +3,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
 from typing import Dict
 import json
+from src.core.ws_manager import ws_manager
 
 from src.core.auth.session_user import get_current_user_from_session
 from src.core.dependencies import (
@@ -116,9 +117,8 @@ def task_create_get(
         context,
     )
 
-
 @router.post("/create", response_class=HTMLResponse)
-def task_create_post(
+async def task_create_post(
     request: Request,
     task_repository: TaskRepo,
     project_repository: ProjectRepo,
@@ -133,10 +133,6 @@ def task_create_post(
     priority: str = Form(...),
     user: UserRead = Depends(get_current_user_from_session),
 ):
-    """
-    Обрабатывает создание новой задачи из формы.
-    """
-    # Проверка проекта
     if project_id:
         project = ps.get_by_id(project_id, project_repository)
         if not project:
@@ -149,7 +145,7 @@ def task_create_post(
                     "request": request,
                     "user": user,
                     "page_title": "Создать задачу",
-                    "form_action": f"/tasks/create",
+                    "form_action": "/tasks/create",
                     "button_text": "Создать",
                     "projects": projects,
                     "users": users,
@@ -158,7 +154,6 @@ def task_create_post(
                 status_code=400,
             )
 
-    # Валидация статуса и приоритета
     try:
         status_enum = TaskStatus(status)
         priority_enum = TaskPriority(priority)
@@ -172,7 +167,7 @@ def task_create_post(
                 "request": request,
                 "user": user,
                 "page_title": "Создать задачу",
-                "form_action": f"/tasks/create",
+                "form_action": "/tasks/create",
                 "button_text": "Создать",
                 "projects": projects,
                 "users": users,
@@ -181,7 +176,6 @@ def task_create_post(
             status_code=400,
         )
 
-    # Валидация даты
     due_date_dt = None
     if due_date:
         try:
@@ -196,7 +190,7 @@ def task_create_post(
                     "request": request,
                     "user": user,
                     "page_title": "Создать задачу",
-                    "form_action": f"/tasks/create",
+                    "form_action": "/tasks/create",
                     "button_text": "Создать",
                     "projects": projects,
                     "users": users,
@@ -219,9 +213,35 @@ def task_create_post(
 
     task = ts.create(task_data, task_repository)
 
-    return RedirectResponse(
-        url=f"/tasks/?notification=created&id={task.id}&name={name}", status_code=303
+    await ws_manager.send_personal(
+        user.id,
+        {
+            "type": "task_created",
+            "title": "Задача создана",
+            "message": f"Вы создали задачу: {task.name}",
+            "task_id": task.id,
+            "url": f"/tasks/{task.id}/",
+        },
     )
+
+    if task.assignee_id:
+        await ws_manager.send_personal(
+            task.assignee_id,
+            {
+                "type": "task_assigned",
+                "title": "Новая задача",
+                "message": f"Вам назначена задача: {task.name}",
+                "task_id": task.id,
+                "url": f"/tasks/{task.id}/",
+            },
+        )
+
+    return RedirectResponse(
+        url=f"/tasks/?notification=created&id={task.id}&name={name}",
+        status_code=303,
+    )
+
+
 
 
 @router.get("/{task_id}/edit", response_class=HTMLResponse)
@@ -302,6 +322,3 @@ def task_edit_post(
 
     ts.modify(task_id, task_update, task_repository)
     return RedirectResponse(url=request.url_for("tasks"), status_code=303)
-
-
-# WebSocket удален (не нужен для простого уведомления)
