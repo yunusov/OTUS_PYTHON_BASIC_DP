@@ -111,16 +111,27 @@ class ProjectService:
 
     def get_by_creator_id(
         self,
-        owner_id: int,
         repository: ProjectRepo,
+        owner_id: int | None = None,
+        sort_by: str = "name",
+        sort_dir: str = "desc",
     ) -> list[ProjectRead]:
         projects = repository.get_by_creator_id(owner_id)
-        return [
+        result = [
             ProjectRead.model_validate(project, from_attributes=True).model_copy(
                 update={"owner": project.creator.fullname}
             )
             for project in projects
         ]
+        sort_map = {
+            "name": lambda p: p.name.lower(),
+            "owner": lambda p: p.owner.lower(),
+            "project_type": lambda p: p.project_type,
+            "created_at": lambda p: p.created_at,
+        }
+        key_func = sort_map[sort_by]
+        result.sort(key=key_func, reverse=(sort_dir == "desc"))
+        return result
 
     def get_by_id(
         self,

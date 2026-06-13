@@ -17,7 +17,7 @@ class ProjectType(StrEnum):
 class ProjectBase(BaseModel):
     """Класс для представления сущности проект"""
 
-    name: str | None = None
+    name: str = ""
     description: str | None = None
     project_type: ProjectType | None = None
     creator_id: int | None = None

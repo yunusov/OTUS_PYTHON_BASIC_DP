@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Form, Request, Depends
+from fastapi import APIRouter, Form, Query, Request, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
 
@@ -38,18 +38,27 @@ cs = CommentService()
 def index(
     request: Request,
     task_repository: TaskRepo,
+    sort_by: str = Query("name"),
+    sort_dir: str = Query("asc"),
     user: UserRead = Depends(get_current_user_from_session),
 ):
     """
     Отображает список всех задач текущего пользователя.
     """
-    tasks = ts.get_user_tasks(user.id, task_repository)
+    tasks = ts.get_user_tasks(
+        user.id,
+        task_repository,
+        sort_by,
+        sort_dir,
+    )
     context = {
         "request": request,
         "user": user,
         "page_title": "Задачи",
         "tasks": tasks,
-        "info": f"Ваши задачи, {user.fullname}"
+        "show_tab_all": False,
+        "current_sort": sort_by,
+        "current_dir": sort_dir,
     }
     return templates.TemplateResponse(
         request,
@@ -63,6 +72,7 @@ def task_view(
     request: Request,
     task_repository: TaskRepo,
     comment_repository: CommentRepo,
+    project_repository: ProjectRepo,
     task_id: int,
     user: UserRead = Depends(get_current_user_from_session),
 ):
@@ -70,10 +80,14 @@ def task_view(
     Отображает детальную информацию о задаче по ID.
     """
     task = ts.get_by_id(task_id, task_repository)
+    project = None
+    if task and task.project_id:
+        project = ps.get_by_id(task.project_id, project_repository)
     comments = cs.get_by_task_id(task_id, comment_repository)
     context = {
         "task": task,
         "comments": comments,
+        "project": project,
         "user": user,
     }
     return templates.TemplateResponse(
@@ -90,10 +104,33 @@ def task_create_get(
     user_repository: UserRepo,
     user: UserRead = Depends(get_current_user_from_session),
 ):
+    return task_create_form(request, project_repository, user_repository, None, user)
+
+
+@router.get("/create/{project_id}", response_class=HTMLResponse)
+def task_project_create_get(
+    request: Request,
+    project_repository: ProjectRepo,
+    user_repository: UserRepo,
+    project_id: int | None = None,
+    user: UserRead = Depends(get_current_user_from_session),
+):
     """
     Отображает форму создания новой задачи.
     """
-    projects = ps.get_by_creator_id(user.id, project_repository)
+    return task_create_form(
+        request, project_repository, user_repository, project_id, user
+    )
+
+
+def task_create_form(
+    request: Request,
+    project_repository: ProjectRepo,
+    user_repository: UserRepo,
+    project_id: int | None = None,
+    user: UserRead = Depends(get_current_user_from_session),
+):
+    projects = ps.get_by_creator_id(project_repository, user.id)
     users = us.get_all(user_repository)
 
     context = {
@@ -102,6 +139,7 @@ def task_create_get(
         "page_title": "Создать задачу",
         "form_action": f"/tasks/create",
         "button_text": "Создать",
+        "project_id": project_id,
         "projects": projects,
         "users": users,
     }
@@ -135,7 +173,7 @@ def task_create_post(
     if project_id:
         project = ps.get_by_id(project_id, project_repository)
         if not project:
-            projects = ps.get_by_creator_id(user.id, project_repository)
+            projects = ps.get_by_creator_id(project_repository, user.id)
             users = us.get_all(user_repository)
             return templates.TemplateResponse(
                 request,
@@ -158,7 +196,7 @@ def task_create_post(
         status_enum = TaskStatus(status)
         priority_enum = TaskPriority(priority)
     except ValueError as e:
-        projects = ps.get_by_creator_id(user.id, project_repository)
+        projects = ps.get_by_creator_id(project_repository, user.id)
         users = us.get_all(user_repository)
         return templates.TemplateResponse(
             request,
@@ -182,7 +220,7 @@ def task_create_post(
         try:
             due_date_dt = datetime.fromisoformat(due_date)
         except ValueError:
-            projects = ps.get_by_creator_id(user.id, project_repository)
+            projects = ps.get_by_creator_id(project_repository, user.id)
             users = us.get_all(user_repository)
             return templates.TemplateResponse(
                 request,
@@ -213,7 +251,7 @@ def task_create_post(
     )
 
     task = ts.create(task_data, task_repository)
-    return RedirectResponse(url=request.url_for("tasks"), status_code=303)
+    return RedirectResponse(url=f"{task.id}", status_code=302)
 
 
 @router.get("/{task_id}/edit", response_class=HTMLResponse)

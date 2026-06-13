@@ -3,6 +3,12 @@
 {% block title %}Задача {{ task.name }} - TaskFlow{% endblock %}
 
 {% block content %}
+<style>
+    .index-page .card {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+</style>
 <div class="container py-4 index-page">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h1 class="taskflow-title mb-0">{{ task.name }}</h1>
@@ -18,7 +24,8 @@
                 <div class="col-md-6">
                     <p><strong>Название:</strong> {{ task.name }}</p>
                     <p><strong>Описание:</strong> {{ task.description or "Нет" }}</p>
-                    <p><strong>Проект:</strong> {{ task.project_id if task.project_id else "Без проекта" }}</p>
+                    <p><strong>Проект:</strong> {% if task.project_id %} <a href="/projects/{{project.id}}/">{{project.name}}</a> {% else %} "Без проекта" 
+                    {% endif %}</p>
                 </div>
                 <div class="col-md-6">
                     <p><strong>Статус:</strong>
