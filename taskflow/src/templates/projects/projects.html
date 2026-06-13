@@ -31,14 +31,61 @@
         </div>
     </div>
 
+    <!-- Вкладки: Мои / Все задачи -->
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <a class="nav-link {% if tab != 'all' %}active{% endif %}" 
+            href="/projects/?user_id={{ user.id }}">
+            Мои проекты
+            </a>
+        </li>
 
+        <li class="nav-item">
+            <a class="nav-link {% if tab == 'all' %}active{% endif %}" 
+            href="/projects/?user_id={{ user.id }}&tab=all">
+            Все проекты
+            </a>
+        </li>
+    </ul>
     <table class="table table-light">
     <thead>
         <tr>
-            <th scope="col">Название проекта</th>
-            <th scope="col">Владелец</th>
-            <th scope="col">Тип проекта</th>
-            <th scope="col">Дата создания</th>
+            <th scope="col">
+                <a href="?sort_by=name&sort_dir={% if current_sort == 'name' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&tab={{tab}}"
+                    class="text-decoration-none text-dark">
+                        Название проекта
+                        {% if current_sort == 'name' %}
+                            <span class="ms-1">{{ '▲' if current_dir == 'asc' else '▼' }}</span>
+                        {% endif %}
+                </a>
+            </th>
+            <th scope="col">
+                <a href="?sort_by=owner&sort_dir={% if current_sort == 'owner' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&tab={{tab}}"
+                    class="text-decoration-none text-dark">
+                        Владелец
+                        {% if current_sort == 'owner' %}
+                            <span class="ms-1">{{ '▲' if current_dir == 'asc' else '▼' }}</span>
+                        {% endif %}
+                </a>
+            </th>
+            <th scope="col">
+                <a href="?sort_by=project_type&sort_dir={% if current_sort == 'project_type' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&tab={{tab}}"
+                    class="text-decoration-none text-dark">
+                        Тип проекта
+                        {% if current_sort == 'project_type' %}
+                            <span class="ms-1">{{ '▲' if current_dir == 'asc' else '▼' }}</span>
+                        {% endif %}
+                </a>
+            </th>
+            <th scope="col">
+                <a href="?sort_by=created_at&sort_dir={% if current_sort == 'created_at' and current_dir == 'asc' %}desc{% else %}asc{% endif %}&tab={{tab}}"
+                    class="text-decoration-none text-dark">
+                        Дата создания
+                        {% if current_sort == 'created_at' %}
+                            <span class="ms-1">{{ '▲' if current_dir == 'asc' else '▼' }}</span>
+                        {% endif %}
+                </a>
+            </th>
             <th scope="col">Действия</th>
         </tr>
     </thead>
@@ -57,9 +104,6 @@
         </tr>
         {% endfor %}
     </tbody>
-    </table>
-              
-
-    
+    </table>            
 </div>
 {% endblock %}

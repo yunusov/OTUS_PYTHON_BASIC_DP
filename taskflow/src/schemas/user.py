@@ -45,7 +45,6 @@ class UserRead(schemas.BaseUser[int], UserBase):
     """Класс для представления сущности пользователь для чтения"""
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    assigned_projects: list[str] | None = None
 
 class UserReadSimple(BaseModel):
     id: int

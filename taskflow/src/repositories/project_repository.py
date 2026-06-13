@@ -1,10 +1,9 @@
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload
+from sqlalchemy import exists, or_, select
+from sqlalchemy.orm import joinedload, selectinload
 
 
 from .base import BaseRepository
-from src.models import ProjectOrm, UserOrm
-from src.schemas.project import ProjectRead
+from src.models import ProjectOrm, UserProjectOrm
 from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()
@@ -22,13 +21,21 @@ class ProjectRepository(BaseRepository):
         project = result.scalar_one_or_none()
         return project
 
-    def get_by_creator_id(self, creator_id: int) -> list[ProjectOrm]:
+    def get_by_creator_id(self, creator_id: int | None) -> list[ProjectOrm]:
         """Проекты создателя"""
-        result = self.session.execute(
+        query = (
             select(ProjectOrm)
             .options(joinedload(ProjectOrm.creator, innerjoin=True))
-            .filter(ProjectOrm.creator_id == creator_id)
+            .options(selectinload(ProjectOrm.user_projects))
         )
+        if creator_id:
+            query = query.filter(
+                or_(
+                    ProjectOrm.creator_id == creator_id,
+                    ProjectOrm.user_projects.any(UserProjectOrm.user_id == creator_id),
+                )
+            )
+        result = self.session.execute(query)
         projects = result.scalars().all()
         return list(projects)
 
@@ -40,13 +47,15 @@ class ProjectRepository(BaseRepository):
         return result.scalar_one_or_none()
 
     def remove_members(self, project_id: int, user_ids: set[int]) -> int:
-        """Удалить участников проекта.
-
-        """
+        """Удалить участников проекта."""
         from src.models import UserProjectOrm
 
-        result = self.session.query(UserProjectOrm).filter(
-            UserProjectOrm.project_id == project_id,
-            UserProjectOrm.user_id.in_(user_ids),
-        ).delete(synchronize_session='fetch')
+        result = (
+            self.session.query(UserProjectOrm)
+            .filter(
+                UserProjectOrm.project_id == project_id,
+                UserProjectOrm.user_id.in_(user_ids),
+            )
+            .delete(synchronize_session="fetch")
+        )
         return result

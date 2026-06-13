@@ -1,4 +1,10 @@
-from fastapi import APIRouter, Form, Request, Depends
+from fastapi import (
+    APIRouter,
+    Form,
+    Query,
+    Request,
+    Depends,
+)
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from src.core.auth.session_user import get_current_user_from_session
@@ -9,7 +15,7 @@ from src.schemas import (
     ProjectCreate,
     ProjectType,
     ProjectUpdate,
-    ProjectMembersAdd
+    ProjectMembersAdd,
 )
 from src.services import ProjectService, TaskService, UserService
 from src.utils.loguru_config import AppLogger
@@ -25,13 +31,20 @@ us = UserService()
 def index(
     request: Request,
     repository: ProjectRepo,
+    sort_by: str = Query("name"),
+    sort_dir: str = Query("asc"),
+    tab: str = Query("tab"),
     user: UserRead = Depends(get_current_user_from_session),
 ):
-    projects = ps.get_by_creator_id(user.id, repository)
+    user_id = user.id if tab != "all" else None
+    projects = ps.get_by_creator_id(repository, user_id, sort_by, sort_dir)
     context = {
         "request": request,
         "user": user,
         "projects": projects,
+        "current_sort": sort_by,
+        "current_dir": sort_dir,
+        "tab": tab,
     }
     return templates.TemplateResponse(
         request,
@@ -47,16 +60,29 @@ def project_view(
     user_repository: UserRepo,
     task_repository: TaskRepo,
     project_id: int,
+    tab: str = Query("tab"),
+    sort_by: str = Query("name"),
+    sort_dir: str = Query("asc"),
     user: UserRead = Depends(get_current_user_from_session),
 ):
     project = ps.get_by_id(project_id, project_repository)
-    tasks = ts.get_by_project_id(project_id, task_repository)
+    userid = user.id if tab != "all" else None
+    tasks = ts.get_by_project_id(
+        project_id,
+        task_repository,
+        userid,
+        sort_by,
+        sort_dir,
+    )
     project_users = us.get_users_by_project(project_id, user_repository)
     context = {
         "project": project,
         "tasks": tasks,
         "user": user,
         "project_users": project_users,
+        "tab": tab,
+        "current_sort": sort_by,
+        "current_dir": sort_dir,
     }
     return templates.TemplateResponse(
         request,
@@ -90,6 +116,13 @@ def project_edit_get(
         context,
     )
 
+@router.get("/{project_id}/tasks/create", response_class=HTMLResponse)
+def project_create_task(
+    request: Request,
+    project_id: int,
+    user: UserRead = Depends(get_current_user_from_session),
+):
+    return RedirectResponse(f"/tasks/create/{project_id}/", status_code=302)
 
 @router.post("/{project_id}/edit", response_class=HTMLResponse)
 def project_edit_post(
@@ -109,7 +142,9 @@ def project_edit_post(
         project_type=ProjectType(project_type),
     )
     ps.modify(project_id, project_update, project_repository)
-    ps.add_members(project_id, ProjectMembersAdd(user_ids=assigned_users), project_repository)
+    ps.add_members(
+        project_id, ProjectMembersAdd(user_ids=assigned_users), project_repository
+    )
     return RedirectResponse(f"/projects/{project_id}/", status_code=302)
 
 
@@ -151,5 +186,7 @@ def project_create_post(
         creator_id=user.id,
     )
     project = ps.create(project_update, project_repository)
-    ps.add_members(project.id, ProjectMembersAdd(user_ids=assigned_users), project_repository)
+    ps.add_members(
+        project.id, ProjectMembersAdd(user_ids=assigned_users), project_repository
+    )
     return RedirectResponse(f"/projects/{project.id}/", status_code=302)
