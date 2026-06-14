@@ -8,7 +8,6 @@ from src.core import settings
 from src.core.auth.session_user import get_current_user_from_session
 from src.core.auth.fastapi_users import current_active_user
 from src.models import UserOrm
-from src.services.user_service import UserService
 from src.utils.jinja_templates import templates
 from src.utils.loguru_config import AppLogger
 from src.utils.request_utils import async_request

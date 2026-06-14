@@ -7,6 +7,12 @@
     .index-page .card {
         background-color: rgba(255, 255, 255, 0.8) !important;
     }
+    .comment-item:target {
+        background-color: rgba(255, 193, 7, 0.1);
+        border-radius: 8px;
+        padding: 12px;
+        transition: background-color 0.5s ease;
+    }
 
 </style>
 <div class="container py-4 index-page">
@@ -88,7 +94,7 @@
                         {% else %}
                             <a href="/user/{{ comment.creator_id }}/home/" class="text-primary fw-bold">{{ comment.creator }}</a>
                         {% endif %}
-                        <span class="text-muted ms-3 small">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                        <a href="/comments/{{ comment.id }}" class="text-muted ms-3 small">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</a>
                     </div>
 
                     <!-- Текст комментария (показывается, когда не редактируем) -->

@@ -2,6 +2,7 @@ from sqlalchemy import and_, select, or_
 from sqlalchemy.orm import joinedload
 
 from src.models import TaskOrm
+from src.schemas import TaskStatus
 from src.utils.loguru_config import AppLogger
 from .base import BaseRepository
 
@@ -65,3 +66,10 @@ class TaskRepository(BaseRepository):
             .where(TaskOrm.name.contains(search_str))
         )
         return list(result.scalars().all())
+    
+    def update_task_status(self, task: TaskOrm, status: TaskStatus) -> None:
+        """Обновить статус задачи"""
+        if not task:
+            logger.error(f"Task with id {task_id} not found")
+            raise ValueError(f"Task with id {task_id} not found")
+        task.status = status

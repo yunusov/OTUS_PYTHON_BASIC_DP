@@ -17,7 +17,6 @@ from .mixins import (
 )
 if TYPE_CHECKING:
     from .task import TaskOrm
-    from .user import UserOrm
     from .user_project import UserProjectOrm
 
 from src.models import (

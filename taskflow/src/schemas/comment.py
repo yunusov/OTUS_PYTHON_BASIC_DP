@@ -1,5 +1,4 @@
 import datetime
-from enum import StrEnum, auto
 from pydantic import (
     BaseModel,
     ConfigDict,
@@ -32,8 +31,6 @@ class CommentRead(CommentBase):
     created_at: datetime.datetime = Field(
         default_factory=lambda: datetime.datetime.now(datetime.UTC)
     )
-    # creator: str | None = None
-    task_id: int
 
     def __repr__(self) -> str:
         return "".join(
@@ -42,7 +39,6 @@ class CommentRead(CommentBase):
                 f"content={self.content},",
                 f"task_id={self.task_id},",
                 f"creator_id={self.creator_id},",
-                f"creator={self.creator},",
                 f"created_at={self.created_at})",
             ]
         )

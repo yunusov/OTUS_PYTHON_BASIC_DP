@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.core.auth.fastapi_users import fastapi_users
+from src.core.auth.user_manager import UserManager
 from src.core.config import settings
 from src.core.dependencies import TaskRepo
 from src.models.user import UserOrm
+from src.routers.api.dependencies.auth.user_manager import get_user_manager
 from src.schemas import TaskRead, TaskCreate, TaskUpdate
 from src.services import TaskService
 from src.utils.loguru_config import AppLogger
@@ -19,24 +21,26 @@ router = APIRouter(prefix=settings.api.v1.tasks, tags=["Tasks"])
 
 
 @router.post("/", response_model=TaskRead)
-def create_task(
+async def create_task(
     task: TaskCreate,
     repository: TaskRepo,
     user: UserOrm = Depends(current_active_user),
+    user_manager: UserManager = Depends(get_user_manager),
 ) -> TaskRead:
     """Создать задачу"""
-    return TaskService().create(task, repository)
+    return await TaskService().create(task, repository, user_manager)
 
 
 @router.put("/{task_id}", response_model=TaskRead)
-def modify_task(
+async def modify_task(
     task_id: int,
     task: TaskUpdate,
     repository: TaskRepo,
     user: UserOrm = Depends(current_active_user),
+    user_manager: UserManager = Depends(get_user_manager),
 ) -> TaskRead:
     """Модифицировать задачу"""
-    return TaskService().modify(task_id, task, repository)
+    return await TaskService().modify(task_id, task, repository, user_manager)
 
 
 @router.delete("/{task_id}")

@@ -89,6 +89,9 @@ class RunConfig(BaseConfig):
     SECRET_KEY: str
     SERVER_IP: str = "0.0.0.0"
     SERVER_PORT: str = "8000"
+    EMAIL_SCHEDULER: bool = False
+    EMAIL_SCHEDULER_INTERVAL: int = 10
+    EMAIL_REMOVE: bool = False
 
 
 class DBConfig(BaseConfig):
@@ -136,6 +139,10 @@ class Settings(BaseConfig):
     @property
     def SERVER_URL(self):
         return "http://" + self.run.SERVER_IP + ":" + self.run.SERVER_PORT
+    
+    @property
+    def EMAIL_SERVER_URL(self):
+        return "http://" + self.run.SERVER_IP + ":9000" + "/api/v1/mailbox/"
 
     @property
     def TEST_DB_URL(self):

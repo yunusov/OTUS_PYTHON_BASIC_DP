@@ -8,8 +8,8 @@ from email.mime.text import MIMEText
 from src.core import settings
 from src.utils.loguru_config import AppLogger
 
-
 logger = AppLogger().get_logger()
+
 
 async def send_email(
     recipient: str,
@@ -23,6 +23,11 @@ async def send_email(
     message["From"] = admin_email
     message["To"] = recipient
     message["Subject"] = subject
+    logger.info(
+        "Sending email to '{}' with subject '{}'",
+        recipient,
+        subject,
+    )
 
     plain_text_message = MIMEText(
         plain_content,
