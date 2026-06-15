@@ -20,3 +20,22 @@ services:
       driver: "json-file"
       options:
         max-size: "1m"
+
+  inbucket:
+    image: inbucket/inbucket:latest
+    container_name: taskflow-inbucket
+    ports:
+      - "2500:2500"   # SMTP (приём писем)
+      - "9000:9000"   # Web UI
+      - "1100:1100"   # POP3 (опционально)
+    environment:
+      - INBUCKET_SMTP_ADDR=0.0.0.0:2500
+      - INBUCKET_WEB_ADDR=0.0.0.0:9000
+      - INBUCKET_POP3_ADDR=0.0.0.0:1100
+      - INBUCKET_MAILBOX_DOMAIN=example.com
+    volumes:
+      - inbucket_data:/storage
+    restart: unless-stopped
+
+volumes:
+  inbucket_data:

@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from src.core.dependencies import TaskRepo
+from src.core.auth.user_manager import UserManager
 from src.models import TaskOrm
 from src.schemas import TaskCreate, TaskUpdate, TaskRead
 from src.utils.loguru_config import AppLogger
@@ -17,7 +18,12 @@ class TaskService:
         "due_date": lambda p: p.due_date if p.due_date else datetime(2100, 1, 1),
     }
 
-    def create(self, task_data: TaskCreate, repository: TaskRepo) -> TaskOrm:
+    async def create(
+        self,
+        task_data: TaskCreate,
+        repository: TaskRepo,
+        user_manager: UserManager,
+    ) -> TaskRead:
         """Создать задачу"""
         task = TaskOrm(
             name=task_data.name,
@@ -34,13 +40,15 @@ class TaskService:
         repository.session.add(task)
         repository.session.commit()
         repository.session.refresh(task)
-        return task
+        await user_manager.on_task_assign(task)
+        return TaskRead.model_validate(task, from_attributes=True)
 
-    def modify(
+    async def modify(
         self,
         task_id: int,
         task_data: TaskUpdate,
         repository: TaskRepo,
+        user_manager: UserManager,
     ) -> TaskRead:
         """Изменение задачи (аналог ProjectService.modify)"""
         task_orm = repository.get_by_id(task_id)
@@ -64,6 +72,8 @@ class TaskService:
                 value = getattr(task_data, field)
                 if value is not None:
                     setattr(task_orm, field, value)
+                    if field == "assignee_id":
+                        await user_manager.on_task_assign(task_orm)
 
         repository.save()
         logger.info(f"Task '{task_orm.id}' updated")

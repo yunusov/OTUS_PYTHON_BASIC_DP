@@ -1,0 +1,10 @@
+Dear {{ user.username }},\n
+
+Task '{{ task.name }}' have been assigned on you.\n
+
+
+Write "+inp" your comment in reply to this email for change status task to "IN_PROGRESS". Please do not change subject!
+
+------
+Best regards,\n
+Taskflow Team\n

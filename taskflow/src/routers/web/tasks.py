@@ -3,13 +3,14 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
 
 from src.core.auth.session_user import get_current_user_from_session
+from src.core.auth.user_manager import UserManager
 from src.core.dependencies import (
     ProjectRepo,
     TaskRepo,
     CommentRepo,
     UserRepo,
 )
-from src.utils.jinja_templates import templates
+from src.routers.api.dependencies.auth.user_manager import get_user_manager
 from src.schemas import (
     UserRead,
     TaskCreate,
@@ -23,6 +24,7 @@ from src.services import (
     UserService,
     CommentService,
 )
+from src.utils.jinja_templates import templates
 from src.utils.loguru_config import AppLogger
 
 logger = AppLogger().get_logger()
@@ -151,7 +153,7 @@ def task_create_form(
 
 
 @router.post("/create", response_class=HTMLResponse)
-def task_create_post(
+async def task_create_post(
     request: Request,
     task_repository: TaskRepo,
     project_repository: ProjectRepo,
@@ -165,6 +167,7 @@ def task_create_post(
     status: str = Form(...),
     priority: str = Form(...),
     user: UserRead = Depends(get_current_user_from_session),
+    user_manager: UserManager = Depends(get_user_manager),
 ):
     """
     Обрабатывает создание новой задачи из формы.
@@ -250,7 +253,7 @@ def task_create_post(
         creator_id=user.id,
     )
 
-    task = ts.create(task_data, task_repository)
+    task = await ts.create(task_data, task_repository, user_manager)
     return RedirectResponse(url=f"{task.id}", status_code=302)
 
 
@@ -281,7 +284,7 @@ def task_edit_get(
 
 
 @router.post("/{task_id}/edit", response_class=HTMLResponse)
-def task_edit_post(
+async def task_edit_post(
     request: Request,
     task_repository: TaskRepo,
     task_id: int,
@@ -294,6 +297,7 @@ def task_edit_post(
     status: str = Form(...),
     priority: str = Form(...),
     user: UserRead = Depends(get_current_user_from_session),
+    user_manager: UserManager = Depends(get_user_manager),
 ):
     """
     Обрабатывает сохранение изменений задачи из формы.
@@ -330,5 +334,5 @@ def task_edit_post(
         due_date=datetime.fromisoformat(due_date) if due_date else None,
     )
 
-    ts.modify(task_id, task_update, task_repository)
+    await ts.modify(task_id, task_update, task_repository, user_manager)
     return RedirectResponse(url=request.url_for("tasks"), status_code=303)

@@ -1,9 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from src.core.auth.fastapi_users import fastapi_users
+from src.core.auth.user_manager import UserManager
 from src.core.config import settings
 from src.core.dependencies import ProjectRepo
 from src.models import UserOrm
+from src.routers.api.dependencies.auth.user_manager import get_user_manager
 from src.schemas import (
     ProjectCreate,
     ProjectRead,
@@ -13,6 +15,7 @@ from src.schemas import (
 from src.services import ProjectService
 from src.utils.loguru_config import AppLogger
 from typing import List
+
 
 # Получить текущего активного пользователя (любого авторизованного)
 current_active_user = fastapi_users.current_user(active=True)
@@ -70,13 +73,19 @@ def get_project(
 
 
 @router.post("/{project_id}/members", response_model=ProjectRead)
-def add_members(
+async def add_members(
     project_id: int,
     data: ProjectMembersAdd,
     repository: ProjectRepo,
     user: UserOrm = Depends(current_active_user),
-):
-    return ProjectService().add_members(project_id, data, repository)
+    user_manager: UserManager = Depends(get_user_manager),
+) -> ProjectRead:
+    return await ProjectService().add_members(
+        project_id,
+        data,
+        repository,
+        user_manager,
+    )
 
 
 @router.get("/", response_model=List[ProjectRead])

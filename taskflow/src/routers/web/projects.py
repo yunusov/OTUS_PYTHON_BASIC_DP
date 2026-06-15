@@ -8,7 +8,9 @@ from fastapi import (
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from src.core.auth.session_user import get_current_user_from_session
+from src.core.auth.user_manager import UserManager
 from src.core.dependencies import ProjectRepo, TaskRepo, UserRepo
+from src.routers.api.dependencies.auth.user_manager import get_user_manager
 from src.utils.jinja_templates import templates
 from src.schemas import (
     UserRead,
@@ -116,6 +118,7 @@ def project_edit_get(
         context,
     )
 
+
 @router.get("/{project_id}/tasks/create", response_class=HTMLResponse)
 def project_create_task(
     request: Request,
@@ -124,8 +127,9 @@ def project_create_task(
 ):
     return RedirectResponse(f"/tasks/create/{project_id}/", status_code=302)
 
+
 @router.post("/{project_id}/edit", response_class=HTMLResponse)
-def project_edit_post(
+async def project_edit_post(
     request: Request,
     project_repository: ProjectRepo,
     project_id: int,
@@ -134,6 +138,7 @@ def project_edit_post(
     project_type: str = Form(...),
     assigned_users: list = Form(None),
     user: UserRead = Depends(get_current_user_from_session),
+    user_manager: UserManager = Depends(get_user_manager),
 ):
     logger.info(f"{assigned_users=}")
     project_update = ProjectUpdate(
@@ -142,8 +147,11 @@ def project_edit_post(
         project_type=ProjectType(project_type),
     )
     ps.modify(project_id, project_update, project_repository)
-    ps.add_members(
-        project_id, ProjectMembersAdd(user_ids=assigned_users), project_repository
+    await ps.add_members(
+        project_id,
+        ProjectMembersAdd(user_ids=assigned_users),
+        project_repository,
+        user_manager,
     )
     return RedirectResponse(f"/projects/{project_id}/", status_code=302)
 
@@ -170,7 +178,7 @@ def project_create_get(
 
 
 @router.post("/create", response_class=HTMLResponse)
-def project_create_post(
+async def project_create_post(
     request: Request,
     project_repository: ProjectRepo,
     name: str = Form(...),
@@ -178,6 +186,7 @@ def project_create_post(
     project_type: str = Form(...),
     user: UserRead = Depends(get_current_user_from_session),
     assigned_users: list = Form(None),
+    user_manager: UserManager = Depends(get_user_manager)
 ):
     project_update = ProjectCreate(
         name=name,
@@ -186,7 +195,10 @@ def project_create_post(
         creator_id=user.id,
     )
     project = ps.create(project_update, project_repository)
-    ps.add_members(
-        project.id, ProjectMembersAdd(user_ids=assigned_users), project_repository
+    await ps.add_members(
+        project.id,
+        ProjectMembersAdd(user_ids=assigned_users),
+        project_repository,
+        user_manager,
     )
     return RedirectResponse(f"/projects/{project.id}/", status_code=302)

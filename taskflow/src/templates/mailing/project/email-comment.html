@@ -1,0 +1,21 @@
+{% extends 'mailing/base.html' %}
+
+{% block title %}
+    [Task-{{task.id}}] New reply has been added on task {{ task.name }}
+{% endblock %}
+
+{% block content %}
+    <p>
+        Dear, {{ user.fullname }}!
+    </p>
+    <p>
+        New reply has been added on task <a href="{{ server_url }}/comments/{{ comment.id }}">{{ task.name }}</a>:
+        <br><br>
+
+        >>> {{ comment.content }}
+    </p>
+    <br>
+    <p>
+        <i>Write your comment in reply to this email. Please do not change subject!</i>
+    </p>
+{% endblock %}
