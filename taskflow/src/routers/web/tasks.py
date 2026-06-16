@@ -5,7 +5,12 @@ from fastapi import (
     Request,
     Depends,
 )
-from fastapi import APIRouter, Form, Query, Request, Depends, WebSocket, WebSocketDisconnect
+from fastapi import (APIRouter, Form, Query,
+    Request,
+    Depends,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from fastapi.responses import HTMLResponse, RedirectResponse
 from datetime import datetime
 
@@ -71,6 +76,7 @@ def index(
         "show_tab_all": False,
         "current_sort": sort_by,
         "current_dir": sort_dir,
+        "info": f"Ваши задачи, {user.fullname}",
     }
     return templates.TemplateResponse(
         request,
@@ -114,6 +120,17 @@ def task_create_get(
     request: Request,
     project_repository: ProjectRepo,
     user_repository: UserRepo,
+    user: UserRead = Depends(get_current_user_from_session),
+):
+    return task_create_form(request, project_repository, user_repository, None, user)
+
+
+@router.get("/create/{project_id}", response_class=HTMLResponse)
+def task_project_create_get(
+    request: Request,
+    project_repository: ProjectRepo,
+    user_repository: UserRepo,
+    project_id: int | None = None,
     user: UserRead = Depends(get_current_user_from_session),
 ):
     return task_create_form(request, project_repository, user_repository, None, user)
@@ -269,7 +286,6 @@ async def task_create_post(
     )
 
     task = await ts.create(task_data, task_repository, user_manager)
-
 
     await ws_manager.send_personal(
         user.id,

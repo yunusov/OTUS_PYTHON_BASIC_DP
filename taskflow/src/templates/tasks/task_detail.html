@@ -30,7 +30,7 @@
                 <div class="col-md-6">
                     <p><strong>Название:</strong> {{ task.name }}</p>
                     <p><strong>Описание:</strong> {{ task.description or "Нет" }}</p>
-                    <p><strong>Проект:</strong> {% if task.project_id %} <a href="/projects/{{project.id}}/">{{project.name}}</a> {% else %} "Без проекта" 
+                    <p><strong>Проект:</strong> {% if task.project_id %} <a href="/projects/{{project.id}}/">{{project.name}}</a> {% else %} "Без проекта"
                     {% endif %}</p>
                 </div>
                 <div class="col-md-6">
