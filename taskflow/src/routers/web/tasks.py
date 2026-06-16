@@ -5,7 +5,10 @@ from fastapi import (
     Request,
     Depends,
 )
-from fastapi import (APIRouter, Form, Query,
+from fastapi import (
+    APIRouter,
+    Form,
+    Query,
     Request,
     Depends,
     WebSocket,
@@ -120,28 +123,6 @@ def task_create_get(
     request: Request,
     project_repository: ProjectRepo,
     user_repository: UserRepo,
-    user: UserRead = Depends(get_current_user_from_session),
-):
-    return task_create_form(request, project_repository, user_repository, None, user)
-
-
-@router.get("/create/{project_id}", response_class=HTMLResponse)
-def task_project_create_get(
-    request: Request,
-    project_repository: ProjectRepo,
-    user_repository: UserRepo,
-    project_id: int | None = None,
-    user: UserRead = Depends(get_current_user_from_session),
-):
-    return task_create_form(request, project_repository, user_repository, None, user)
-
-
-@router.get("/create/{project_id}", response_class=HTMLResponse)
-def task_project_create_get(
-    request: Request,
-    project_repository: ProjectRepo,
-    user_repository: UserRepo,
-    project_id: int | None = None,
     user: UserRead = Depends(get_current_user_from_session),
 ):
     return task_create_form(request, project_repository, user_repository, None, user)
