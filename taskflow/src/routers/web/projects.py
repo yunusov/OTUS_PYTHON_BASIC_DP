@@ -127,6 +127,14 @@ def project_create_task(
 ):
     return RedirectResponse(f"/tasks/create/{project_id}/", status_code=302)
 
+@router.get("/{project_id}/tasks/create", response_class=HTMLResponse)
+def project_create_task(
+    request: Request,
+    project_id: int,
+    user: UserRead = Depends(get_current_user_from_session),
+):
+    return RedirectResponse(f"/tasks/create/{project_id}/", status_code=302)
+
 
 @router.post("/{project_id}/edit", response_class=HTMLResponse)
 async def project_edit_post(
