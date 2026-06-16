@@ -35,7 +35,7 @@
                 <a href="/tasks/create" class="btn btn-primary">
                     + Создать задачу
                 </a>
-            {% endif %}  
+            {% endif %}
         </div>
     </div>
 
@@ -48,7 +48,7 @@
     <ul class="nav nav-tabs mb-3">
         {% if show_tab_mine != False %}
             <li class="nav-item">
-                <a class="nav-link {% if tab != 'all' %}active{% endif %}" 
+                <a class="nav-link {% if tab != 'all' %}active{% endif %}"
                 href="{% if project %}/projects/{{ project.id }}{% else %}/tasks{% endif %}/">
                 Мои задачи
                 </a>
@@ -57,7 +57,27 @@
 
         {% if show_tab_all != False %}
             <li class="nav-item">
-                <a class="nav-link {% if tab == 'all' %}active{% endif %}" 
+                <a class="nav-link {% if tab == 'all' %}active{% endif %}"
+                href="/projects/{% if project %}{{ project.id }}{% endif %}/?tab=all">
+                Все задачи
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+
+    <ul class="nav nav-tabs mb-3">
+        {% if show_tab_mine != False %}
+            <li class="nav-item">
+                <a class="nav-link {% if tab != 'all' %}active{% endif %}"
+                href="{% if project %}/projects/{{ project.id }}{% else %}/tasks{% endif %}/">
+                Мои задачи
+                </a>
+            </li>
+        {% endif %}
+
+        {% if show_tab_all != False %}
+            <li class="nav-item">
+                <a class="nav-link {% if tab == 'all' %}active{% endif %}"
                 href="/projects/{% if project %}{{ project.id }}{% endif %}/?tab=all">
                 Все задачи
                 </a>
@@ -142,4 +162,31 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+const url = new URL(window.location.href);
+
+if (url.searchParams.get('notification') === 'created') {
+    const id = url.searchParams.get('id');
+    const name = url.searchParams.get('name');
+    const div = document.createElement('div');
+    div.style.position = 'fixed';
+    div.style.top = '20px';
+    div.style.right = '20px';
+    div.style.background = '#4CAF50';
+    div.style.color = 'white';
+    div.style.padding = '16px 24px';
+    div.style.borderRadius = '8px';
+    div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    div.style.minWidth = '320px';
+    div.style.zIndex = '10000';
+    div.innerHTML = '<strong>✅ Задача создана!</strong><br>Задача \'' + name + '\' создана успешно<br><a href="/tasks/' + id + '/' + '" style="color: white; text-decoration: underline;">Посмотреть</a>';
+    document.body.appendChild(div);
+    setTimeout(function() { div.remove(); }, 5000);
+    url.searchParams.delete('notification');
+    url.searchParams.delete('id');
+    url.searchParams.delete('name');
+    window.history.replaceState(null, '', url);
+}
+</script>
 {% endblock %}
