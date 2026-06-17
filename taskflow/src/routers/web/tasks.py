@@ -301,6 +301,8 @@ async def task_create_post(
 def task_edit_get(
     request: Request,
     task_repository: TaskRepo,
+    project_repository: ProjectRepo,
+    user_repository: UserRepo,
     task_id: int,
     user: UserRead = Depends(get_current_user_from_session),
 ):
@@ -309,12 +311,18 @@ def task_edit_get(
     """
     task = ts.get_by_id(task_id, task_repository)
 
+    # ПОЛУЧАЕМ СПИСКИ
+    projects = ps.get_by_creator_id(project_repository, user.id)
+    users = us.get_all(user_repository)
+
     context = {
         "task": task,
         "page_title": "Редактирование задачи",
         "form_action": f"/tasks/{task_id}/edit",
         "button_text": "Сохранить",
         "user": user,
+        "projects": projects,
+        "users": users,
     }
     return templates.TemplateResponse(
         request,

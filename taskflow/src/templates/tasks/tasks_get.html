@@ -1,4 +1,4 @@
-<!-- templates/tasks/tasks_get.html -->
+<!<!-- templates/tasks/tasks_get.html -->
 {% extends "base.html" %}
 
 {% block title %}TaskFlow{% endblock %}
@@ -39,32 +39,7 @@
         </div>
     </div>
 
-    {% if info %}
-    <div class="alert alert-dark">
-        <p class="mb-2">{{ info }}</p>
-    </div>
-    {% endif %}
-    <!-- Вкладки: Мои / Все задачи -->
-    <ul class="nav nav-tabs mb-3">
-        {% if show_tab_mine != False %}
-            <li class="nav-item">
-                <a class="nav-link {% if tab != 'all' %}active{% endif %}"
-                href="{% if project %}/projects/{{ project.id }}{% else %}/tasks{% endif %}/">
-                Мои задачи
-                </a>
-            </li>
-        {% endif %}
-
-        {% if show_tab_all != False %}
-            <li class="nav-item">
-                <a class="nav-link {% if tab == 'all' %}active{% endif %}"
-                href="/projects/{% if project %}{{ project.id }}{% endif %}/?tab=all">
-                Все задачи
-                </a>
-            </li>
-        {% endif %}
-    </ul>
-
+    <!-- Вкладки: Мои / Все задачи - ТОЛЬКО ОДИН РАЗ -->
     <ul class="nav nav-tabs mb-3">
         {% if show_tab_mine != False %}
             <li class="nav-item">
