@@ -1,10 +1,13 @@
-<!-- templates/tasks/tasks_create.html -->
 {% extends "base.html" %}
 
 {% block title %}{{ page_title }} - TaskFlow{% endblock %}
 
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/projects.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-5" style="max-width: 600px;">
+<div class="container py-5 projects-page" style="max-width: 600px;">
     <h1 class="h3 mb-4">{{ page_title }}</h1>
 
     <div class="card shadow-sm">
@@ -15,7 +18,7 @@
             </div>
             {% endif %}
 
-            <form action={{ form_action }} method="post">
+            <form action="{{ form_action }}" method="post">
                 <div class="mb-3">
                     <label class="form-label">Название *</label>
                     <input type="text" name="name" class="form-control" required minlength="3" maxlength="255" value="{{ project.name if project else '' }}">
@@ -36,7 +39,7 @@
                             <option value="service_desk" {% if project.project_type == 'service_desk' %}selected{% endif %}>Service desk</option>
                             <option value="software" {% if project.project_type == 'software' %}selected{% endif %}>Software</option>
                         {% else %}
-                            <option value="business">Business</option>  
+                            <option value="business">Business</option>
                             <option value="service_desk">Service desk</option>
                             <option value="software">Software</option>
                         {% endif %}
@@ -53,6 +56,7 @@
                         {% endif %}
                     {% endfor %}
                     </select>
+                    <div class="form-text">Удерживайте Ctrl для выбора нескольких пользователей</div>
                 </div>
                 <input hidden name="creator_id" value="{{ project.creator_id if project else user.id }}"/>
 

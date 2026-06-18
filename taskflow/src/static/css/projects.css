@@ -1,0 +1,60 @@
+/* projects.css - стили для всех страниц проектов */
+
+/* Общие стили для таблиц на странице проектов */
+.projects-page .table {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.projects-page .table th,
+.projects-page .table td {
+    background-color: transparent !important;
+    border-color: rgba(33, 37, 41, 0.1) !important;
+}
+
+.projects-page .table thead th {
+    background-color: rgba(248, 249, 250, 0.6) !important;
+    border-color: rgba(33, 37, 41, 0.2) !important;
+}
+
+/* Стили для форм на страницах проектов */
+.projects-page .form-control,
+.projects-page .form-select {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.projects-page .form-control:focus,
+.projects-page .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Стили для карточек на странице деталей проекта */
+.project-detail-page .card {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.project-detail-page .card .card-body {
+    padding: 1.5rem;
+}
+
+.project-detail-page .card .row {
+    margin-bottom: 0.5rem;
+}
+
+.project-detail-page .card .col-md-3 {
+    margin-bottom: 0.5rem;
+}
+
+/* select multiple для выбора пользователей */
+.projects-page select[multiple] {
+    min-height: 150px;
+}
+
+.projects-page select[multiple] option {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.projects-page select[multiple] option:checked {
+    background-color: #0d6efd;
+    color: white;
+}

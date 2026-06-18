@@ -25,7 +25,7 @@ logger = AppLogger().get_logger()
 
 main_app = fastapi_create_app()
 
-main_app.mount("/images", StaticFiles(directory="src/images"), name="images")
+main_app.mount("/static", StaticFiles(directory="src/static"), name="static")
 main_app.include_router(router=api_router, prefix=settings.api.PREFIX)
 main_app.include_router(router=web_router)
 main_app.add_api_websocket_route("/ws/notifications/{user_id}", websocket_notifications)

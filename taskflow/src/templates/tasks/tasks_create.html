@@ -1,10 +1,13 @@
-<!-- templates/tasks/tasks_create.html -->
 {% extends "base.html" %}
 
 {% block title %}{{ page_title }} - TaskFlow{% endblock %}
 
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/tasks.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-4 index-page" style="max-width: 600px;">
+<div class="container py-4 tasks-page" style="max-width: 600px;">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h1 class="taskflow-title mb-0">{{ page_title }}</h1>
         <a href="/tasks" class="btn btn-outline-dark">Назад</a>
@@ -90,18 +93,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    .index-page .form-control,
-    .index-page .form-select {
-        background-color: rgba(255, 255, 255, 0.7) !important;
-    }
-
-    .index-page .form-control:focus,
-    .index-page .form-select:focus {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-    }
-</style>
 
 <script>
 const projectSelect = document.getElementById('project-select');

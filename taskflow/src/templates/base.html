@@ -2,15 +2,20 @@
 <html lang="en">
 
 <head>
-    <!-- Required meta tags -->
     <meta charset="utf-8">
     <title>{% block title %}{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="icon" type="image/x-icon/png" href="{{ url_for('images', path='favicon.png') }}">
+    <link rel="icon" type="image/x-icon/png" href="{{ url_for('static', path='images/favicon.png') }}">
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/base.css') }}">
+
+    <!-- Дополнительные стили для конкретных страниц -->
+    {% block styles %}{% endblock %}
 </head>
 
 <body>
@@ -19,57 +24,6 @@
     </header>
 
     <main><br>
-    <style>
-        html {
-            scroll-behavior: smooth;
-        }
-        body {
-            padding-top: 56px;
-        }
-        .index-page {
-            position: relative;
-            min-height: 100vh;
-            padding: 1rem 0;
-        }
-
-        /* Фоновая картинка справа, поменьше */
-        .index-page::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            width: 40%;
-            background:
-                linear-gradient(to left, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.4)),
-                url("{{ url_for('images', path='background_web.jpg') }}") no-repeat right center;
-            background-size: contain;
-            z-index: -1;
-        }
-
-        /* Контейнер с белым фоном */
-        .index-page .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 1rem;
-            padding: 1rem;
-            box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
-        }
-
-        .index-page .card {
-            background: #fff;
-        }
-
-        /* Письменный шрифт для TaskFlow */
-        .taskflow-title {
-            font-family: 'Brush Script MT', 'Brush Script RR', coils, cursive;
-            font-size: 3rem;
-            font-weight: 400;
-            color: #212529;
-            letter-spacing: 1px;
-            line-height: 1;
-        }
-    </style>
-    
         {% block content %}
         <h1>Hello, world!</h1>
         {% endblock %}
@@ -89,8 +43,8 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-            crossorigin="anonymous">
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous">
     </script>
     <script>
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))

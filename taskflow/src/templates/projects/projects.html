@@ -1,27 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}TaskFlow{% endblock %}
+{% block title %}Проекты - TaskFlow{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/projects.css') }}">
+{% endblock %}
 
 {% block content %}
-<style>
-    .index-page .table {
-        background-color: rgba(255, 255, 255, 0.7) !important;
-    }
-    
-    .index-page .table th,
-    .index-page .table td {
-        background-color: transparent !important;
-        border-color: rgba(33, 37, 41, 0.1) !important;
-    }
-    
-    .index-page .table thead th {
-        background-color: rgba(248, 249, 250, 0.6) !important;
-        border-color: rgba(33, 37, 41, 0.2) !important;
-    }
-</style>
-
-<div class="container py-4 index-page">
-    <!-- Логотип + Название TaskFlow слева -->
+<div class="container py-4 index-page projects-page">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h1 class="taskflow-title mb-0">Проекты</h1>
         <div>
@@ -31,17 +17,17 @@
         </div>
     </div>
 
-    <!-- Вкладки: Мои / Все задачи -->
+    <!-- Вкладки: Мои / Все проекты -->
     <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
-            <a class="nav-link {% if tab != 'all' %}active{% endif %}" 
+            <a class="nav-link {% if tab != 'all' %}active{% endif %}"
             href="/projects/?user_id={{ user.id }}">
             Мои проекты
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link {% if tab == 'all' %}active{% endif %}" 
+            <a class="nav-link {% if tab == 'all' %}active{% endif %}"
             href="/projects/?user_id={{ user.id }}&tab=all">
             Все проекты
             </a>
@@ -104,6 +90,6 @@
         </tr>
         {% endfor %}
     </tbody>
-    </table>            
+    </table>
 </div>
 {% endblock %}

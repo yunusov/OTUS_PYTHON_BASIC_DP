@@ -1,191 +1,160 @@
 {% extends 'base.html' %}
+
 {% block title %}
   Личный кабинет
 {% endblock %}
 
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+{% endblock %}
+
 {% block content %}
-<style>
-    .index-page.home-page::before {
-        background:
-            linear-gradient(to left, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.4)),
-            url("{{ url_for('images', path='background_hp.png') }}") no-repeat right center;
-        background-size: contain;
-    }
-    .list-group-item {
-        background-color: rgba(255, 255, 255, 0.5) !important; /* 50% прозрачности */
-    }
-</style>
-<div class="index-page home-page container py-4">
+<div class="index-page profile-page container py-4">
 
     <div class="d-flex align-items-center gap-3 mb-4">
         <h1 class="taskflow-title mb-0">Личный кабинет</h1>
     </div>
 
-  {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
-  {% endif %}
-
-  
-    {% if  RO != True %}
-      <button
-        id="edit-button"
-        type="button"
-        class="btn btn-secondary"
-      >Редактировать
-      </button>
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
     {% endif %}
-    <button
-      id="save-button"
-      type="submit"
-      form="user-form"
-      class="btn btn-warning d-none"
-    >Сохранить
-    </button>
 
-  <ul class="list-group my-3">
-    <form action="/user/me" method="post" id="user-form">
-      <li class="list-group-item">
-      <div class="mb-3 row">
-        <label class="col-sm-4 col-form-label"><strong>E-mail: </strong></label>
-        <div class="col-sm-8">
-          <input type="email" id="email-input" name="email" value="{{ user.email }}" readonly="true">
-        </div>
-      </div>
-      </li>
-      <li class="list-group-item">
-      <div class="mb-3 row">
-        <label class="col-sm-4 col-form-label"><strong>Полное имя: </strong></label>
-        <div class="col-sm-8">
-          <input type="text" id="fullname-input" name="fullname" value="{{ user.fullname }}" readonly="true">
-        </div>
-      </div>
-      </li>
-      <li class="list-group-item">
-      <div class="mb-3 row">
-        <label class="col-sm-4 col-form-label"><strong>Имя пользователя: </strong></label>
-        <div class="col-sm-8">
-          <input type="text" id="username-input" name="username" value="{{ user.username }}" readonly="true">
-        </div>
-      </div>
-      </li>
-      <li class="list-group-item">
-      <div class="mb-3 row">
-        <label class="col-sm-4 col-form-label"><strong>Пароль: </strong></label>
-        <div class="col-sm-8">
-          <input type="password" id="password-input" name="password" value="{{ user.password }}" readonly="true">
-        </div>
-      </div>
-      </li>
-      <li class="list-group-item">
-        <strong>Пользователь создан: </strong>
-        <code>{{ user.created_at }}</code>
-      </li>
-      <li class="list-group-item">
-        <strong>Верифицирован: </strong>
-        {% if user.is_verified %}
-          <span class="badge bg-success">Да</span>
-        {% else %}
-          <span class="badge bg-warning">Нет</span>
+    <div class="action-buttons">
+        {% if RO != True %}
+            <button id="edit-button" type="button" class="btn btn-secondary">
+                Редактировать
+            </button>
         {% endif %}
-      </li>
-    </form>
-  </ul>
-
-  <script>
-      const editButton = document.getElementById("edit-button");
-      const saveButton = document.getElementById("save-button");
-      const emailInput = document.getElementById("email-input");
-      const fullnameInput = document.getElementById("fullname-input");
-      const usernameInput = document.getElementById("username-input");
-      const passwordInput = document.getElementById("password-input");
-      
-      editButton.addEventListener("click", async () => {
-        editButton.classList.add("d-none");
-        saveButton.classList.remove("d-none");
-        emailInput.removeAttribute("readonly");
-        fullnameInput.removeAttribute("readonly");
-        usernameInput.removeAttribute("readonly");
-        passwordInput.removeAttribute("readonly");
-      })
-
-      saveButton.addEventListener("click", async () => {
-        saveButton.classList.add("d-none");
-        editButton.classList.remove("d-none");
-        emailInput.setAttribute("readonly", "true");
-        fullnameInput.setAttribute("readonly", "true");
-        usernameInput.setAttribute("readonly", "true");
-        passwordInput.setAttribute("readonly", "true");
-      })
-  </script>
-
-  {% if not user.is_verified %}
-    <div>
-      <button
-        id="verify-button"
-        type="button"
-        class="btn btn-primary"
-      >Верифицировать по e-mail
-      </button>
+        <button id="save-button" type="submit" form="user-form" class="btn btn-warning d-none">
+            Сохранить
+        </button>
     </div>
 
-    <div
-      id="loading-indicator"
-      class="spinner-border my-3 d-none"
-      role="status"
-    >
-      <span class="visually-hidden">Loading...</span>
-    </div>
-
-    <div
-      id="verification-email-sent"
-      class="alert alert-success my-3 d-none"
-    >
-      <h5 class="alert-heading">
-        Verification request has been sent.
-      </h5>
-      Please check your e-mail and click on the verification link.
-    </div>
-
-    <div
-      id="verification-request-error"
-      class="alert alert-danger my-3 d-none"
-    >
-      <h5 class="alert-heading">
-        Failed to send verification e-mail.
-      </h5>
-      Please try again later.
-    </div>
-    </div>
+    <ul class="list-group my-3">
+        <form action="/user/me" method="post" id="user-form">
+            <li class="list-group-item">
+                <div class="mb-3 row">
+                    <label class="col-sm-4 col-form-label"><strong>E-mail: </strong></label>
+                    <div class="col-sm-8">
+                        <input type="email" id="email-input" name="email" value="{{ user.email }}" readonly>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                <div class="mb-3 row">
+                    <label class="col-sm-4 col-form-label"><strong>Полное имя: </strong></label>
+                    <div class="col-sm-8">
+                        <input type="text" id="fullname-input" name="fullname" value="{{ user.fullname }}" readonly>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                <div class="mb-3 row">
+                    <label class="col-sm-4 col-form-label"><strong>Имя пользователя: </strong></label>
+                    <div class="col-sm-8">
+                        <input type="text" id="username-input" name="username" value="{{ user.username }}" readonly>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                <div class="mb-3 row">
+                    <label class="col-sm-4 col-form-label"><strong>Пароль: </strong></label>
+                    <div class="col-sm-8">
+                        <input type="password" id="password-input" name="password" value="{{ user.password }}" readonly>
+                    </div>
+                </div>
+            </li>
+            <li class="list-group-item">
+                <strong>Пользователь создан: </strong>
+                <code>{{ user.created_at }}</code>
+            </li>
+            <li class="list-group-item">
+                <strong>Верифицирован: </strong>
+                {% if user.is_verified %}
+                    <span class="badge bg-success">Да</span>
+                {% else %}
+                    <span class="badge bg-warning">Нет</span>
+                {% endif %}
+            </li>
+        </form>
+    </ul>
 
     <script>
-      const requestVerificationURL = "{{ url_for('verify:request-token') }}";
+        const editButton = document.getElementById("edit-button");
+        const saveButton = document.getElementById("save-button");
+        const emailInput = document.getElementById("email-input");
+        const fullnameInput = document.getElementById("fullname-input");
+        const usernameInput = document.getElementById("username-input");
+        const passwordInput = document.getElementById("password-input");
 
-      const verifyButton = document.getElementById("verify-button");
-      const verificationEmailSent = document.getElementById("verification-email-sent");
-      const verificationRequestError = document.getElementById("verification-request-error");
-      const loadingIndicator = document.getElementById("loading-indicator");
+        editButton.addEventListener("click", async () => {
+            editButton.classList.add("d-none");
+            saveButton.classList.remove("d-none");
+            emailInput.removeAttribute("readonly");
+            fullnameInput.removeAttribute("readonly");
+            usernameInput.removeAttribute("readonly");
+            passwordInput.removeAttribute("readonly");
+        });
 
-      verifyButton.addEventListener("click", async () => {
-        verifyButton.classList.add("d-none");
-        loadingIndicator.classList.remove("d-none");
-
-        const response = await fetch(requestVerificationURL, {
-          method: "POST",
-          body: JSON.stringify({ email: "{{ user.email }}" }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-        loadingIndicator.classList.add("d-none");
-
-        if (response.ok) {
-          verificationEmailSent.classList.remove("d-none");
-        } else {
-          verificationRequestError.classList.remove("d-none");
-        }
-      })
-
+        saveButton.addEventListener("click", async () => {
+            saveButton.classList.add("d-none");
+            editButton.classList.remove("d-none");
+            emailInput.setAttribute("readonly", "true");
+            fullnameInput.setAttribute("readonly", "true");
+            usernameInput.setAttribute("readonly", "true");
+            passwordInput.setAttribute("readonly", "true");
+        });
     </script>
 
-  {% endif %}
+    {% if not user.is_verified %}
+        <div class="verify-section">
+            <button id="verify-button" type="button" class="btn btn-primary">
+                Верифицировать по e-mail
+            </button>
+        </div>
+
+        <div id="loading-indicator" class="spinner-border my-3 d-none" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+
+        <div id="verification-email-sent" class="alert alert-success my-3 d-none">
+            <h5 class="alert-heading">Verification request has been sent.</h5>
+            Please check your e-mail and click on the verification link.
+        </div>
+
+        <div id="verification-request-error" class="alert alert-danger my-3 d-none">
+            <h5 class="alert-heading">Failed to send verification e-mail.</h5>
+            Please try again later.
+        </div>
+
+        <script>
+            const requestVerificationURL = "{{ url_for('verify:request-token') }}";
+
+            const verifyButton = document.getElementById("verify-button");
+            const verificationEmailSent = document.getElementById("verification-email-sent");
+            const verificationRequestError = document.getElementById("verification-request-error");
+            const loadingIndicator = document.getElementById("loading-indicator");
+
+            verifyButton.addEventListener("click", async () => {
+                verifyButton.classList.add("d-none");
+                loadingIndicator.classList.remove("d-none");
+
+                const response = await fetch(requestVerificationURL, {
+                    method: "POST",
+                    body: JSON.stringify({ email: "{{ user.email }}" }),
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                });
+                loadingIndicator.classList.add("d-none");
+
+                if (response.ok) {
+                    verificationEmailSent.classList.remove("d-none");
+                } else {
+                    verificationRequestError.classList.remove("d-none");
+                }
+            });
+        </script>
+    {% endif %}
+</div>
 {% endblock %}

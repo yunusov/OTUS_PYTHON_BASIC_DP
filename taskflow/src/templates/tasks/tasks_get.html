@@ -1,27 +1,13 @@
-<!<!-- templates/tasks/tasks_get.html -->
 {% extends "base.html" %}
 
 {% block title %}TaskFlow{% endblock %}
 
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/tasks.css') }}">
+{% endblock %}
+
 {% block content %}
-<style>
-    .index-page .table {
-        background-color: rgba(255, 255, 255, 0.7) !important;
-    }
-
-    .index-page .table th,
-    .index-page .table td {
-        background-color: transparent !important;
-        border-color: rgba(33, 37, 41, 0.1) !important;
-    }
-
-    .index-page .table thead th {
-        background-color: rgba(248, 249, 250, 0.6) !important;
-        border-color: rgba(33, 37, 41, 0.2) !important;
-    }
-</style>
-
-<div class="container py-4 index-page">
+<div class="container py-4 index-page tasks-page">
     {% block project_content %}{% endblock %}
 
     <div class="d-flex align-items-center justify-content-between mb-4">

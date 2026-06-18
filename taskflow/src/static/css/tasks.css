@@ -1,0 +1,41 @@
+/* tasks.css - стили для всех страниц задач */
+
+/* Общие стили для таблиц на странице задач */
+.tasks-page .table {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.tasks-page .table th,
+.tasks-page .table td {
+    background-color: transparent !important;
+    border-color: rgba(33, 37, 41, 0.1) !important;
+}
+
+.tasks-page .table thead th {
+    background-color: rgba(248, 249, 250, 0.6) !important;
+    border-color: rgba(33, 37, 41, 0.2) !important;
+}
+
+/* Стили для форм на страницах задач */
+.tasks-page .form-control,
+.tasks-page .form-select {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.tasks-page .form-control:focus,
+.tasks-page .form-select:focus {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Стили для комментариев */
+.comment-item:target {
+    background-color: rgba(255, 193, 7, 0.1);
+    border-radius: 8px;
+    padding: 12px;
+    transition: background-color 0.5s ease;
+}
+
+/* Стили для карточек на странице деталей задачи */
+.task-detail-page .card {
+    background-color: rgba(255, 255, 255, 0.8) !important;
+}

@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Загрузка исполнителей - TaskFlow{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/reports.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 index-page reports-page">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h1 class="taskflow-title mb-0">Загрузка исполнителей</h1>
+        <div>
+            <button onclick="downloadPDF()" class="btn btn-primary">
+                Скачать PDF
+            </button>
+            <a href="/reports" class="btn btn-outline-secondary ms-2">
+                ← Назад
+            </a>
+        </div>
+    </div>
+
+    <!-- ЕДИНЫЙ КОНТЕНТ ДЛЯ ВЕБ И PDF -->
+    <div id="pdfContent">
+        <!-- Заголовок для PDF -->
+        <div class="pdf-header">
+            <div style="text-align: center; padding-bottom: 15px; border-bottom: 3px solid #2c3e50; margin-bottom: 20px;">
+                <div style="font-size: 26px; font-weight: bold; color: #2c3e50;">TaskFlow</div>
+                <div style="font-size: 13px; color: #7f8c8d;">Управление задачами</div>
+                <div style="font-size: 12px; color: #95a5a6; margin-top: 5px;">
+                    Отчет по загрузке исполнителей | Пользователь: {{ user.fullname }} | <span id="pdfDate"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Карточки исполнителей -->
+        {% if data %}
+        <div class="row g-4">
+            {% for item in data %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="card-title fw-bold mb-0">{{ item.user_name }}</h5>
+                                <small class="text-muted">{{ item.email }}</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill fs-6">
+                                {{ item.total_tasks }} задач
+                            </span>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between small">
+                                <span>Выполнено</span>
+                                <span>{{ item.completion_rate }}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success"
+                                     style="width: {{ item.completion_rate }}%">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <small class="text-muted">По статусам:</small>
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                {% for status, count in item.status_counts.items() %}
+                                <span class="badge bg-{% if status == 'DONE' %}success{% elif status == 'IN_PROGRESS' %}primary{% elif status == 'TODO' %}secondary{% elif status == 'REVIEW' %}warning{% elif status == 'BLOCKED' %}danger{% else %}info{% endif %}">
+                                    {{ status }}: {{ count }}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        {% if item.overdue_tasks > 0 %}
+                        <div class="mt-2">
+                            <span class="badge bg-danger">
+                                {{ item.overdue_tasks }} просроченных
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info">
+            Нет данных о загрузке исполнителей
+        </div>
+        {% endif %}
+
+        <!-- Подвал для PDF -->
+        <div class="pdf-footer">
+            <div style="margin-top: 20px; padding-top: 10px; border-top: 2px solid #ecf0f1; text-align: center; font-size: 10px; color: #95a5a6;">
+                © TaskFlow — Все права защищены
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+        integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const dateStr = now.toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const el = document.getElementById('pdfDate');
+        if (el) el.textContent = dateStr;
+    });
+
+    function downloadPDF() {
+        const btn = document.querySelector('.btn-primary');
+        const original = btn.textContent;
+        btn.textContent = '⏳ Генерация...';
+        btn.disabled = true;
+
+        document.querySelector('.pdf-header').style.display = 'block';
+        document.querySelector('.pdf-footer').style.display = 'block';
+
+        const now = new Date();
+        const dateStr = now.getFullYear() +
+            String(now.getMonth() + 1).padStart(2, '0') +
+            String(now.getDate()).padStart(2, '0') + '_' +
+            String(now.getHours()).padStart(2, '0') +
+            String(now.getMinutes()).padStart(2, '0');
+
+        html2pdf()
+            .set({
+                margin: [15, 15, 15, 15],
+                filename: 'report_workload_' + dateStr + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            })
+            .from(document.getElementById('pdfContent'))
+            .save()
+            .then(() => {
+                document.querySelector('.pdf-header').style.display = 'none';
+                document.querySelector('.pdf-footer').style.display = 'none';
+                btn.textContent = original;
+                btn.disabled = false;
+            })
+            .catch(() => {
+                document.querySelector('.pdf-header').style.display = 'none';
+                document.querySelector('.pdf-footer').style.display = 'none';
+                btn.textContent = original;
+                btn.disabled = false;
+                alert('Ошибка генерации PDF');
+            });
+    }
+</script>
+{% endblock %}

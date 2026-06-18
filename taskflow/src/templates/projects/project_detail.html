@@ -1,6 +1,11 @@
 {% extends "tasks/tasks_get.html" %}
 
-{% block title %}Проект: "{{ project.name }}"" - TaskFlow{% endblock %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/projects.css') }}">
+{% endblock %}
+
+{% block title %}Проект: "{{ project.name }}" - TaskFlow{% endblock %}
 
 {% block project_content %}
     <!-- Заголовок проекта -->
@@ -14,7 +19,7 @@
     </div>
 
     <!-- Информация о проекте -->
-    <div class="card shadow-sm mb-4">
+    <div class="card shadow-sm mb-4 project-detail-page">
         <div class="card-body">
             <div class="row">
                 <div class="col-md-3">
@@ -36,7 +41,7 @@
                 <div class="col-md-3">
                     <strong>Задач:</strong>
                     <p class="mb-0">{{ tasks|length }}</p>
-                </div>                
+                </div>
                 <div class="col-md-3">
                     <strong>Пользователи проекта:</strong>
                     {% for user in project_users %}

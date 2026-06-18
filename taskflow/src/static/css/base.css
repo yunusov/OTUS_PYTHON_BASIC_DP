@@ -1,0 +1,58 @@
+/* base.css */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    padding-top: 56px;
+}
+
+.index-page {
+    position: relative;
+    min-height: 100vh;
+    padding: 1rem 0;
+}
+
+/* Фоновая картинка справа, поменьше */
+.index-page::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 40%;
+    background:
+        linear-gradient(to left, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.4)),
+        url("/static/images/background_web.jpg") no-repeat right center;
+    background-size: contain;
+    z-index: -1;
+}
+
+/* Контейнер с белым фоном */
+.index-page .container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.08);
+}
+
+.index-page .card {
+    background: #fff;
+}
+
+/* Письменный шрифт для TaskFlow */
+.taskflow-title {
+    font-family: 'Brush Script MT', 'Brush Script RR', coils, cursive;
+    font-size: 3rem;
+    font-weight: 400;
+    color: #212529;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+/* Стили для логотипа */
+.logo-img {
+    height: 50px;
+    width: auto;
+}
