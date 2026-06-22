@@ -2,8 +2,12 @@
 
 {% block title %}Редактирование задачи {{ task.name }} - TaskFlow{% endblock %}
 
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/tasks.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container py-5" style="max-width: 600px;">
+<div class="container py-5 tasks-page" style="max-width: 600px;">
     <h1 class="h3 mb-4">Редактирование задачи</h1>
 
     <div class="card shadow-sm">
@@ -104,18 +108,6 @@
         </div>
     </div>
 </div>
-
-<style>
-    .index-page .form-control,
-    .index-page .form-select {
-        background-color: rgba(255, 255, 255, 0.7) !important;
-    }
-
-    .index-page .form-control:focus,
-    .index-page .form-select:focus {
-        background-color: rgba(255, 255, 255, 0.9) !important;
-    }
-</style>
 
 <script>
 const projectSelect = document.getElementById('project-select');

@@ -9,26 +9,54 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto">
                 {% if user %}
+                    <!-- Поиск -->
                     <li class="nav-item">
                         <form method="post" class="d-flex" action="/search/">
                             <input class="form-control me-2" type="search" placeholder="Введите текст" aria-label="Search" id="search_str" name="search_str">
                             <button class="btn btn-outline-success" type="submit">Поиск</button>
                         </form>
                     </li>
+
+                    <!-- Задачи -->
                     <li class="nav-item">
-                        <a class="nav-link" href="/tasks">Задачи</a>
+                        <a class="nav-link" href="/tasks"> Задачи</a>
                     </li>
+
+                    <!-- Проекты -->
                     <li class="nav-item">
-                        <a class="nav-link" href="/projects">Проекты</a>
+                        <a class="nav-link" href="/projects"> Проекты</a>
                     </li>
+
+                    <!-- Отчеты (выпадающее меню) -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="reportsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                             Отчеты
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="reportsDropdown">
+                            <li><a class="dropdown-item" href="/reports/by-status"> Задачи по статусам</a></li>
+                            <li><a class="dropdown-item" href="/reports/workload"> Загрузка исполнителей</a></li>
+                            <li><a class="dropdown-item" href="/reports/completion-time"> Время выполнения</a></li>
+                            <li><a class="dropdown-item" href="/reports/dashboard"> Сводка</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fw-bold" href="/reports"> Все отчеты</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- Пользователь -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        {{ menu_username if menu_username else user.username }}
+                            {{ menu_username if menu_username else user.username }}
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="/user/home">Профиль</a></li>
-                            <li><a class="dropdown-item" href="/logout">Выход</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                            <li><a class="dropdown-item" href="/user/home">⚙️ Профиль</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="/logout">🚪 Выход</a></li>
                         </ul>
+                    </li>
+                {% else %}
+                    <!-- Гость -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="/auth/login">Войти</a>
                     </li>
                 {% endif %}
             </ul>

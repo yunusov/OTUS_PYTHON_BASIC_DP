@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Отчеты - TaskFlow{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/reports.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 index-page reports-page reports-index">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h1 class="taskflow-title mb-0">Отчеты</h1>
+    </div>
+
+    <!-- Карточки отчетов -->
+    <div class="row g-4">
+        <!-- Отчет 1: По статусам -->
+        <div class="col-md-6 col-lg-3">
+            <a href="/reports/by-status" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="icon">📊</div>
+                        <h5 class="card-title">Задачи по статусам</h5>
+                        <p class="card-text">Задачи по статусам в разрезе проектов</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Отчет 2: Загрузка исполнителей -->
+        <div class="col-md-6 col-lg-3">
+            <a href="/reports/workload" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="icon">👥</div>
+                        <h5 class="card-title">Загрузка исполнителей</h5>
+                        <p class="card-text">Сколько задач у каждого исполнителя</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Отчет 3: Время выполнения -->
+        <div class="col-md-6 col-lg-3">
+            <a href="/reports/completion-time" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="icon">⏱️</div>
+                        <h5 class="card-title">Время выполнения</h5>
+                        <p class="card-text">Среднее время выполнения задачи</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Отчет 4: Сводка -->
+        <div class="col-md-6 col-lg-3">
+            <a href="/reports/dashboard" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <div class="icon">📈</div>
+                        <h5 class="card-title">Сводка</h5>
+                        <p class="card-text">Общая статистика и показатели</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

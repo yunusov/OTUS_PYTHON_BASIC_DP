@@ -21,7 +21,9 @@ class TaskRepository(BaseRepository):
         )
         return list(result.scalars().all())
 
-    def get_by_project(self, project_id: int, user_id: int | None = None) -> list[TaskOrm]:
+    def get_by_project(
+        self, project_id: int, user_id: int | None = None
+    ) -> list[TaskOrm]:
         """Задачи проекта"""
         logger.info(f"project_id: {project_id}, user_id: {user_id}")
         query = (
@@ -80,3 +82,50 @@ class TaskRepository(BaseRepository):
             logger.error(f"Task with id {task_id} not found")
             raise ValueError(f"Task with id {task_id} not found")
         task.status = status
+
+    def get_completed_tasks_since(
+        self, since_date: datetime, user_id: int | None = None
+    ) -> list[TaskOrm]:
+        """
+        Получить завершенные задачи с указанной даты
+        """
+        from datetime import datetime  # локальный импорт, если не импортирован вверху
+
+        query = (
+            select(TaskOrm)
+            .options(joinedload(TaskOrm.assignee))
+            .options(joinedload(TaskOrm.creator))
+            .options(joinedload(TaskOrm.project))
+            .where(
+                TaskOrm.status == TaskStatus.DONE, TaskOrm.completed_at >= since_date
+            )
+        )
+
+        if user_id:
+            query = query.where(
+                or_(TaskOrm.creator_id == user_id, TaskOrm.assignee_id == user_id)
+            )
+
+        result = self.session.execute(query)
+        return list(result.scalars().all())
+
+    def get_overdue_tasks(self, user_id: int | None = None) -> list[TaskOrm]:
+        """
+        Получить просроченные задачи
+        """
+        from datetime import datetime
+
+        query = (
+            select(TaskOrm)
+            .options(joinedload(TaskOrm.assignee))
+            .options(joinedload(TaskOrm.creator))
+            .where(TaskOrm.due_date < datetime.now(), TaskOrm.status != TaskStatus.DONE)
+        )
+
+        if user_id:
+            query = query.where(
+                or_(TaskOrm.creator_id == user_id, TaskOrm.assignee_id == user_id)
+            )
+
+        result = self.session.execute(query)
+        return list(result.scalars().all())

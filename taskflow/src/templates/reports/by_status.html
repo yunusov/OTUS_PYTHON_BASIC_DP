@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Задачи по статусам - TaskFlow{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/reports.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4 index-page reports-page">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h1 class="taskflow-title mb-0">Задачи по статусам</h1>
+        <div>
+            <button onclick="downloadPDF()" class="btn btn-primary">
+                Скачать PDF
+            </button>
+            <a href="/reports" class="btn btn-outline-secondary ms-2">
+                ← Назад
+            </a>
+        </div>
+    </div>
+
+    <!-- ЕДИНЫЙ КОНТЕНТ ДЛЯ ВЕБ И PDF -->
+    <div id="pdfContent">
+        <!-- Заголовок для PDF -->
+        <div class="pdf-header">
+            <div style="text-align: center; padding-bottom: 15px; border-bottom: 3px solid #2c3e50; margin-bottom: 20px;">
+                <div style="font-size: 26px; font-weight: bold; color: #2c3e50;">TaskFlow</div>
+                <div style="font-size: 13px; color: #7f8c8d;">Управление задачами</div>
+                <div style="font-size: 12px; color: #95a5a6; margin-top: 5px;">
+                    Отчет по статусам задач | Пользователь: {{ user.fullname }} | <span id="pdfDate"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Краткая сводка -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body py-2">
+                        <h6 class="text-muted mb-0">Проектов</h6>
+                        <h3 class="fw-bold mb-0">{{ projects|length }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body py-2">
+                        <h6 class="text-muted mb-0">Всего задач</h6>
+                        <h3 class="fw-bold mb-0">{{ grand_total }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body py-2">
+                        <h6 class="text-muted mb-0">Выполнено</h6>
+                        <h3 class="fw-bold text-success mb-0">{{ total_by_status.get('DONE', 0) }}</h3>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body py-2">
+                        <h6 class="text-muted mb-0">В работе</h6>
+                        <h3 class="fw-bold text-primary mb-0">{{ total_by_status.get('IN_PROGRESS', 0) }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Таблица -->
+        {% if projects %}
+        <table class="table table-light">
+            <thead>
+                <tr>
+                    <th scope="col">Проект</th>
+                    {% for status in statuses %}
+                    <th scope="col" class="text-center">{{ status }}</th>
+                    {% endfor %}
+                    <th scope="col" class="text-center">Всего</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td>
+                        <a href="/projects/{{ project.id }}/" class="text-decoration-none fw-bold">
+                            {{ project.name }}
+                        </a>
+                    </td>
+                    {% for status in statuses %}
+                    <td class="text-center">
+                        {% set count = project.status_counts.get(status, 0) %}
+                        {% if count > 0 %}
+                            <span class="badge bg-{% if status == 'DONE' %}success{% elif status == 'IN_PROGRESS' %}primary{% elif status == 'TODO' %}secondary{% elif status == 'REVIEW' %}warning{% elif status == 'BLOCKED' %}danger{% else %}info{% endif %}">
+                                {{ count }}
+                            </span>
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td class="text-center fw-bold">{{ project.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="table-secondary fw-bold">
+                    <td>ИТОГО</td>
+                    {% for status in statuses %}
+                    <td class="text-center">{{ total_by_status.get(status, 0) }}</td>
+                    {% endfor %}
+                    <td class="text-center">{{ grand_total }}</td>
+                </tr>
+            </tfoot>
+        </table>
+        {% else %}
+        <div class="alert alert-info">
+            У вас пока нет проектов. <a href="/projects/create" class="alert-link">Создайте первый проект</a>
+        </div>
+        {% endif %}
+
+        <!-- Подвал для PDF -->
+        <div class="pdf-footer">
+            <div style="margin-top: 20px; padding-top: 10px; border-top: 2px solid #ecf0f1; text-align: center; font-size: 10px; color: #95a5a6;">
+                © TaskFlow — Все права защищены
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+        integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const now = new Date();
+        const dateStr = now.toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const el = document.getElementById('pdfDate');
+        if (el) el.textContent = dateStr;
+    });
+
+    function downloadPDF() {
+        const btn = document.querySelector('.btn-primary');
+        const original = btn.textContent;
+        btn.textContent = '⏳ Генерация...';
+        btn.disabled = true;
+
+        document.querySelector('.pdf-header').style.display = 'block';
+        document.querySelector('.pdf-footer').style.display = 'block';
+
+        const now = new Date();
+        const dateStr = now.getFullYear() +
+            String(now.getMonth() + 1).padStart(2, '0') +
+            String(now.getDate()).padStart(2, '0') + '_' +
+            String(now.getHours()).padStart(2, '0') +
+            String(now.getMinutes()).padStart(2, '0');
+
+        html2pdf()
+            .set({
+                margin: [15, 15, 15, 15],
+                filename: 'report_by_status_' + dateStr + '.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            })
+            .from(document.getElementById('pdfContent'))
+            .save()
+            .then(() => {
+                document.querySelector('.pdf-header').style.display = 'none';
+                document.querySelector('.pdf-footer').style.display = 'none';
+                btn.textContent = original;
+                btn.disabled = false;
+            })
+            .catch(() => {
+                document.querySelector('.pdf-header').style.display = 'none';
+                document.querySelector('.pdf-footer').style.display = 'none';
+                btn.textContent = original;
+                btn.disabled = false;
+                alert('Ошибка генерации PDF');
+            });
+    }
+</script>
+{% endblock %}

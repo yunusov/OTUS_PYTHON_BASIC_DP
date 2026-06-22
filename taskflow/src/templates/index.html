@@ -2,20 +2,24 @@
 
 {% block title %}TaskFlow{% endblock %}
 
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/index.css') }}">
+{% endblock %}
+
 {% block content %}
     <div class="container py-4 index-page">
         <!-- Логотип + Название TaskFlow слева -->
         <div class="d-flex align-items-center gap-3 mb-4">
-            <img src="{{ url_for('images', path='favicon.png') }}"
+            <img src="{{ url_for('static', path='images/favicon.png') }}"
                  alt="TaskFlow Logo"
-                 style="width: 60px; height: 60px; object-fit: contain;">
+                 class="logo-img">
 
             <h1 class="taskflow-title mb-0">TaskFlow</h1>
         </div>
 
         {% if user %}
             <!-- Приветствие + Профиль + Выход -->
-            <div class="bg-white rounded-4 shadow-sm border p-4 p-md-5 mb-4">
+            <div class="welcome-block">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
                     <div>
                         <h2 class="h4 fw-bold text-dark mb-2">
@@ -35,7 +39,7 @@
             </div>
 
             <!-- Совет дня -->
-            <div class="bg-light text-dark rounded-4 shadow-sm p-4 p-md-5 mb-4 border">
+            <div class="tip-block">
                 <h3 class="h5 fw-bold mb-2">💡 Совет дня</h3>
                 <p class="mb-0">
                     {{ random_tip }}
@@ -43,8 +47,8 @@
             </div>
 
             <!-- Карточки разделов -->
-            <div class="d-flex flex-nowrap overflow-auto gap-3 pb-2">
-                <a href="/tasks" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
+            <div class="cards-scroll">
+                <a href="/tasks" class="section-card">
                     <div class="card border-0 shadow-sm rounded-4 h-100">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -59,7 +63,7 @@
                     </div>
                 </a>
 
-                <a href="/projects" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
+                <a href="/projects" class="section-card">
                     <div class="card border-0 shadow-sm rounded-4 h-100">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -74,7 +78,7 @@
                     </div>
                 </a>
 
-                <a href="/projects/create" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
+                <a href="/projects/create" class="section-card">
                     <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-start mb-3">
@@ -89,7 +93,7 @@
                     </div>
                 </a>
 
-                <a href="/tasks/create" class="text-decoration-none text-dark flex-shrink-0" style="width: 280px;">
+                <a href="/tasks/create" class="section-card">
                     <div class="card border-0 shadow-sm rounded-4 h-100 bg-dark text-white">
                         <div class="card-body p-4">
                             <div class="d-flex justify-content-between align-items-start mb-3">

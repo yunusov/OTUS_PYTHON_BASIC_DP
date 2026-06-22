@@ -2,20 +2,12 @@
 
 {% block title %}Задача {{ task.name }} - TaskFlow{% endblock %}
 
-{% block content %}
-<style>
-    .index-page .card {
-        background-color: rgba(255, 255, 255, 0.8) !important;
-    }
-    .comment-item:target {
-        background-color: rgba(255, 193, 7, 0.1);
-        border-radius: 8px;
-        padding: 12px;
-        transition: background-color 0.5s ease;
-    }
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', path='css/tasks.css') }}">
+{% endblock %}
 
-</style>
-<div class="container py-4 index-page">
+{% block content %}
+<div class="container py-4 index-page task-detail-page">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h1 class="taskflow-title mb-0">{{ task.name }}</h1>
         <div>

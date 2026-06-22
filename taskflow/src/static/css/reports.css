@@ -1,0 +1,189 @@
+/* reports.css - стили для всех страниц отчетов */
+
+/* Общие стили для таблиц */
+.reports-page .table {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.reports-page .table th,
+.reports-page .table td {
+    background-color: transparent !important;
+    border-color: rgba(33, 37, 41, 0.1) !important;
+}
+
+.reports-page .table thead th {
+    background-color: rgba(248, 249, 250, 0.6) !important;
+    border-color: rgba(33, 37, 41, 0.2) !important;
+}
+
+/* Бейджи */
+.reports-page .badge {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.7rem;
+}
+
+/* Карточки на главной странице отчетов */
+.reports-index .card {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(5px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+    border: 1px solid rgba(33, 37, 41, 0.1) !important;
+}
+
+.reports-index .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+}
+
+.reports-index .card .card-body {
+    padding: 1.5rem;
+}
+
+.reports-index .card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.reports-index .card .card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    color: #212529;
+}
+
+.reports-index .card .card-text {
+    font-size: 0.85rem;
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+/* Карточки статистики в отчетах */
+.reports-page .card.border-0.shadow-sm {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(5px);
+}
+
+/* PDF стили (скрыты по умолчанию, показываются при печати) */
+.pdf-header,
+.pdf-footer {
+    display: none;
+}
+
+/* Медиа-печать */
+@media print {
+    header,
+    footer,
+    .no-print,
+    .navbar,
+    .btn,
+    .alert,
+    form {
+        display: none !important;
+    }
+
+    .pdf-header,
+    .pdf-footer {
+        display: block !important;
+    }
+
+    body {
+        background: white !important;
+        padding: 20px !important;
+        margin: 0 !important;
+    }
+
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 11px !important;
+    }
+
+    .table th {
+        background-color: #2c3e50 !important;
+        color: white !important;
+    }
+
+    .table td,
+    .table th {
+        border: 1px solid #ddd !important;
+        padding: 6px 10px !important;
+    }
+
+    .badge {
+        display: inline-block !important;
+        padding: 2px 8px !important;
+        border-radius: 3px !important;
+        font-size: 10px !important;
+        font-weight: bold !important;
+        color: white !important;
+    }
+
+    .bg-success {
+        background-color: #27ae60 !important;
+    }
+    .bg-primary {
+        background-color: #3498db !important;
+    }
+    .bg-secondary {
+        background-color: #95a5a6 !important;
+    }
+    .bg-warning {
+        background-color: #f39c12 !important;
+    }
+    .bg-danger {
+        background-color: #e74c3c !important;
+    }
+    .bg-info {
+        background-color: #1abc9c !important;
+    }
+
+    .text-muted {
+        color: #7f8c8d !important;
+    }
+    .text-danger {
+        color: #e74c3c !important;
+    }
+    .text-success {
+        color: #27ae60 !important;
+    }
+    .text-primary {
+        color: #3498db !important;
+    }
+
+    .fw-bold {
+        font-weight: bold !important;
+    }
+
+    .card {
+        border: 1px solid #ddd !important;
+        background: white !important;
+    }
+
+    .card-body {
+        padding: 10px !important;
+    }
+
+    .progress {
+        background-color: #ecf0f1 !important;
+        border-radius: 5px !important;
+        height: 8px !important;
+        overflow: hidden !important;
+    }
+
+    .progress-bar {
+        height: 100% !important;
+        border-radius: 5px !important;
+        background-color: #27ae60 !important;
+    }
+
+    @page {
+        margin: 2cm;
+        size: A4 portrait;
+    }
+}

@@ -1,0 +1,79 @@
+/* index.css - стили для главной страницы */
+
+/* Карточки-ссылки */
+.section-card {
+    text-decoration: none;
+    display: block;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.section-card:hover {
+    transform: translateY(-4px);
+}
+
+.section-card .card {
+    transition: box-shadow 0.2s ease;
+}
+
+.section-card:hover .card {
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Сетка карточек */
+.cards-scroll {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+/* Блок приветствия */
+.welcome-block {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(4px);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Блок совета дня */
+.tip-block {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(4px);
+    border-radius: 1rem;
+    padding: 1.25rem 1.5rem;
+    border-left: 4px solid #0d6efd;
+    margin-bottom: 1.5rem;
+}
+
+/* Логотип */
+.logo-img {
+    height: 50px;
+    width: auto;
+}
+
+/* Заголовок TaskFlow */
+.taskflow-title {
+    font-family: 'Brush Script MT', 'Brush Script RR', coils, cursive;
+    font-size: 3rem;
+    font-weight: 400;
+    color: #212529;
+    letter-spacing: 1px;
+    line-height: 1;
+}
+
+/* Адаптив для маленьких экранов */
+@media (max-width: 576px) {
+    .cards-scroll {
+        grid-template-columns: 1fr;
+    }
+
+    .taskflow-title {
+        font-size: 2.2rem;
+    }
+
+    .logo-img {
+        height: 40px;
+    }
+}
