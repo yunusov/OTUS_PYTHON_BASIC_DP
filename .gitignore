@@ -209,3 +209,7 @@ __marimo__/
 
 uv.lock
 *.log
+# Docker
+.env.docker
+.dockerignore
+docker-compose.override.yml
