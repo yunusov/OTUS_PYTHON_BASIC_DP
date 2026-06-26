@@ -213,4 +213,3 @@ uv.lock
 # Docker
 .env.docker
 .dockerignore
-docker-compose.override.yml
