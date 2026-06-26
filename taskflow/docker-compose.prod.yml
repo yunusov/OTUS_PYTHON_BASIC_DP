@@ -1,0 +1,120 @@
+# docker-compose.prod.yml (В Git!)
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: taskflow/Dockerfile
+    container_name: taskflow-app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@pg:5432/${DB_NAME}
+      - SERVER_IP=0.0.0.0
+      - SERVER_PORT=${SERVER_PORT:-8000}
+      - SECRET_KEY=${SECRET_KEY}
+      - SMTP_HOST=inbucket
+      - SMTP_PORT=2500
+      - SMTP_MAILBOX_DOMAIN=example.com
+    depends_on:
+      - pg
+      - inbucket
+    networks:
+      - taskflow-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  migrations:
+    build:
+      context: ..
+      dockerfile: taskflow/Dockerfile
+    container_name: taskflow-migrations
+    environment:
+      - DATABASE_URL=postgresql://${DB_USER}:${DB_PASS}@pg:5432/${DB_NAME}
+    depends_on:
+      - pg
+    command: ["uv", "run", "alembic", "upgrade", "head"]
+    restart: "no"
+    networks:
+      - taskflow-network
+
+  pg:
+    image: postgres:18-alpine
+    container_name: taskflow-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-password}
+      POSTGRES_DB: ${DB_NAME:-postgres}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - taskflow-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  maildev:
+    image: maildev/maildev
+    container_name: taskflow-maildev
+    environment:
+      - TZ=Europe/Moscow
+      - MAILDEV_WEB_PORT=1080
+      - MAILDEV_SMTP_PORT=1025
+    ports:
+      - "8080:1080"
+      - "1025:1025"
+    networks:
+      - taskflow-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+
+  inbucket:
+    image: inbucket/inbucket:latest
+    container_name: taskflow-inbucket
+    ports:
+      - "2500:2500"
+      - "9000:9000"
+      - "1100:1100"
+    environment:
+      - INBUCKET_SMTP_ADDR=0.0.0.0:2500
+      - INBUCKET_WEB_ADDR=0.0.0.0:9000
+      - INBUCKET_POP3_ADDR=0.0.0.0:1100
+      - INBUCKET_MAILBOX_DOMAIN=example.com
+    volumes:
+      - inbucket_data:/storage
+    restart: unless-stopped
+    networks:
+      - taskflow-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pg_data:
+    name: taskflow_pg_data
+  inbucket_data:
+    name: taskflow_inbucket_data
+
+networks:
+  taskflow-network:
+    name: taskflow_network
+    driver: bridge
