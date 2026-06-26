@@ -1,0 +1,141 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Debug - check files
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Files in root:"
+          ls -la
+
+      
+
+      - name: Fix static folder path for CI
+        run: |
+          echo " Создаем src/static для CI..."
+          mkdir -p src
+          if [ -d "taskflow/src/static" ]; then
+            cp -r taskflow/src/static src/
+            echo " Статика скопирована!"
+          else
+            mkdir -p src/static
+            echo " Папка taskflow/src/static не найдена, создана пустая"
+          fi
+          echo " Содержимое src/static:"
+          ls -la src/static || echo "Папка пуста"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+          cache-dependency-glob: "pyproject.toml"
+
+      - name: Set up Python
+        run: uv python install 3.13
+
+      - name: Create virtual environment
+        run: uv venv
+
+      - name: Install dependencies
+        run: |
+          uv pip install .
+          uv pip install pytest pytest-cov
+
+      - name: Create database tables (синхронно)
+        run: |
+          cd taskflow
+          uv run python -c "
+          from src.core import get_db_helper
+          from src.models.base import BaseOrm
+          
+          def create_tables():
+              helper = get_db_helper()
+              BaseOrm.metadata.create_all(helper.engine)
+          
+          create_tables()
+          "
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: test_user
+          DB_PASS: test_password
+          DB_NAME: test_db
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          SECRET_KEY: test_secret_key_12345
+          reset_password_token_secret: test_reset_token_secret_12345
+          verification_token_secret: test_verification_token_secret_12345
+          ENVIRONMENT: test
+          REDIS_URL: redis://localhost:6379/0
+
+      - name: Clean database before tests
+        run: |
+          cd taskflow
+          uv run python -c "
+          from src.core import get_db_helper
+          from sqlalchemy import text
+          
+          def clean_db():
+              helper = get_db_helper()
+              with helper.session_factory() as session:
+                  session.execute(text('DELETE FROM tf_projects'))
+                  session.execute(text('DELETE FROM tf_users'))
+                  session.execute(text('DELETE FROM tf_tasks'))
+                  session.execute(text('DELETE FROM tf_comments'))
+                  session.commit()
+          
+          clean_db()
+          "
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: test_user
+          DB_PASS: test_password
+          DB_NAME: test_db
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          SECRET_KEY: test_secret_key_12345
+          reset_password_token_secret: test_reset_token_secret_12345
+          verification_token_secret: test_verification_token_secret_12345
+          ENVIRONMENT: test
+          REDIS_URL: redis://localhost:6379/0
+
+      - name: Run tests
+        run: |
+          cd taskflow
+          uv run pytest -v --tb=short
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: test_user
+          DB_PASS: test_password
+          DB_NAME: test_db
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          SECRET_KEY: test_secret_key_12345
+          reset_password_token_secret: test_reset_token_secret_12345
+          verification_token_secret: test_verification_token_secret_12345
+          ENVIRONMENT: test
