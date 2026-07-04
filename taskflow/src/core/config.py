@@ -112,6 +112,7 @@ class EmailConfig(BaseConfig):
     email_port: str = "1025"
     email_login: str = "admin@taskflow.com"
     email_token: str = ""
+    email_scheduler: bool = False
     smtp_auth: bool = False
 
 

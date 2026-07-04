@@ -11,8 +11,10 @@ logger = AppLogger().get_logger()
 class EmailScheduler:
     def process_emails(self):
         # logger.info("Task is running")
-        emails = read_emails()
-        parse_emails(emails)
+        email_scheduler = settings.email.email_scheduler
+        if email_scheduler:
+            emails = read_emails()
+            parse_emails(emails)
 
     def start(self):
         scheduler = BackgroundScheduler()
