@@ -210,3 +210,8 @@ __marimo__/
 uv.lock
 *.log
 *.zip
+# Docker
+.env.docker
+.dockerignore
+
+
